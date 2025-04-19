@@ -2,6 +2,8 @@
     --base-size: 140px;
     --active-size: 160px;
     --timer-color: #4a90e2;
+    --size-factor: 1;
+    --master-color: #ffd700;
 }
 
 body {
@@ -9,13 +11,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #2a2a2a; /* Cambiado a gris oscuro */
+    background: #2a2a2a;
     min-height: 100vh;
     margin: 0;
     padding: 20px;
     user-select: none;
     -webkit-font-smoothing: antialiased;
-    color: #fff; /* Texto blanco para mejor contraste */
+    color: #fff;
 }
 
 .counters-container {
@@ -44,21 +46,26 @@ body {
 }
 
 .timer {
-    width: var(--base-size);
-    height: var(--base-size);
+    width: calc(var(--base-size) * var(--size-factor));
+    height: calc(var(--base-size) * var(--size-factor));
     border-radius: 50%;
     cursor: pointer;
     position: relative;
-    background: #3a3a3a; /* Fondo del círculo más oscuro */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Sombra más pronunciada */
-    transition: all 0.3s;
+    background: #3a3a3a;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     touch-action: none;
     overflow: visible;
 }
 
 .timer.active {
     transform: scale(1.15);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    animation: bounce 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+@keyframes bounce {
+    0%, 100% { transform: scale(1.15); }
+    50% { transform: scale(1.25); }
 }
 
 .timer::before {
@@ -69,15 +76,72 @@ body {
     width: calc(100% + 24px);
     height: calc(100% + 24px);
     transform: translate(-50%, -50%);
-    border: 2px dashed #ccc;
+    border: 3px dashed #ccc;
     border-radius: 50%;
     opacity: 0.3;
     transition: all 0.5s ease;
     z-index: -1;
-    transition: 
-    border-color 0.3s ease,
-    opacity 0.3s ease,
-    border-style 0.8s ease;
+}
+
+.timer.active::before {
+    border-color: var(--timer-color);
+    opacity: 1;
+    animation: 
+        activeGlow 8s linear infinite,
+        dashToSolid 0.8s forwards;
+    border-width: 3px;
+}
+
+@keyframes activeGlow {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes dashToSolid {
+    0% {
+        border-style: dashed;
+        border-spacing: 8px;
+    }
+    100% {
+        border-style: solid;
+    }
+}
+
+.timer.master::before {
+    border-color: var(--master-color) !important;
+    filter: drop-shadow(0 0 25px var(--master-color));
+}
+
+.timer.master::after {
+    content: 'MASTER';
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--master-color);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.8em;
+    text-shadow: 0 0 10px var(--master-color);
+}
+
+.timer.master.active::before {
+    animation: masterGlow 2s ease infinite;
+}
+
+@keyframes masterGlow {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+.timer.master:not(.active)::before {
+    border-style: solid !important;
+    opacity: 0.6 !important;
 }
 
 .progress-container {
@@ -88,7 +152,6 @@ body {
     overflow: visible;
 }
 
-/* Efecto de onda corregido */
 .wave-ring {
     position: absolute;
     top: 50%;
@@ -121,85 +184,6 @@ body {
         opacity: 0;
         border-width: 1px;
         filter: brightness(1.2);
-    }
-}
-
-@keyframes activeGlow {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
-
-.timer.active::before {
-    content: '';
-    position: absolute;
-    width: calc(100% + 24px); /* Aumentar tamaño */
-    height: calc(100% + 24px);
-    top: 70px;
-    left: 70px;
-    border: 4px dashed var(--timer-color); /* Borde más grueso */
-    border-radius: 50%;
-    animation: activeGlow 8s linear infinite, glowPulse 2s ease-in-out infinite;
-    z-index: 0; /* Mayor z-index */
-    opacity: 1;
-    filter: brightness(1.5);
-    box-shadow: 0 0 25px var(--timer-color); /* Añadir sombra */
-    border-color: var(--timer-color);
-    opacity: 1;
-    animation: 
-        activeGlow 8s linear infinite,
-        dashToSolid 0.8s forwards;
-    border-width: 3px;
-}
-
-@keyframes pulseGlow {
-    0% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(1.05); }
-    100% { opacity: 0.3; transform: scale(1); }
-}
-
-.timer.active .progress-fill {
-    animation: pulseGlow 2.5s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-    0%, 100% {
-        opacity: 0.1;
-        transform: scale(0.95);
-    }
-    50% {
-        opacity: 0.3;
-        transform: scale(1.05);
-    }
-}
-
-.timer.active::after {
-    content: '';
-    position: absolute;
-    top: -15px;
-    left: -15px;
-    width: calc(100% + 30px);
-    height: calc(100% + 30px);
-    border-radius: 50%;
-    background: var(--timer-color);
-    filter: blur(25px);
-    opacity: 0;
-    animation: glowPulse 2.5s ease-in-out infinite;
-    z-index: -1;
-    pointer-events: none;
-}
-
-/* Animación para unir las líneas */
-@keyframes dashToSolid {
-    0% {
-        border-style: dashed;
-        border-spacing: 8px;
-    }
-    100% {
-        border-style: solid;
     }
 }
 
@@ -286,7 +270,7 @@ body {
 .add-counter {
     width: var(--base-size);
     height: var(--base-size);
-    border: 2px dashed #666; /* Borde gris */
+    border: 2px dashed #666;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -295,7 +279,7 @@ body {
     transition: all 0.3s;
     position: fixed;
     bottom: 30px;
-    background: #3a3a3a; /* Fondo gris oscuro */
+    background: #3a3a3a;
     z-index: 10;
 }
 
@@ -311,8 +295,8 @@ body {
 
 .context-menu {
     position: absolute;
-    background: #3a3a3a; /* Fondo gris oscuro */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5); /* Sombra más oscura */
+    background: #3a3a3a;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     border-radius: 8px;
     padding: 8px;
     z-index: 100;
@@ -345,10 +329,11 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: white;
+    background: #2a2a2a;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 2px solid var(--timer-color);
     z-index: 1000;
     font-family: 'Comfortaa', cursive;
 }
@@ -361,6 +346,7 @@ body {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 @keyframes pulse {

@@ -22,8 +22,7 @@ class Timer {
 
         this.setupEvents();
         this.updateDisplay();
-        this.updateDisplay(); // Añade esta línea al final del constructor
-        this.adjustTextSize(); // Añade esta línea para ajustar el tamaño inmediatamente
+        this.adjustTextSize();
     }
 
     setupEvents() {
@@ -108,9 +107,8 @@ class Timer {
         
         this.progressContainer.appendChild(wave);
         
-        // Animación suavizada con requestAnimationFrame
         requestAnimationFrame(() => {
-            wave.style.animation = 'rippleWave 8s cubic-bezier(0.23, 1, 0.32, 1) forwards';
+            wave.style.animation = 'rippleWave 1.4s cubic-bezier(0.23, 1, 0.32, 1) forwards';
         });
         
         setTimeout(() => {
@@ -150,10 +148,22 @@ class Timer {
         this.adjustTextSize();
     }
 
+    isMaster() {
+        return this.milliseconds >= 36000000000; // 10,000 horas
+    }
+
     updateProgress() {
-        const totalHours = 36000000000;
+        const totalHours = 36000000000; // 10,000 horas
         const progress = Math.min(this.milliseconds / totalHours, 1);
+        
+        // Tamaño dinámico
+        const sizeFactor = 1 + (progress * 0.5);
+        this.timerElement.style.setProperty('--size-factor', sizeFactor);
+        
         this.progressBar.style.transform = `scale(${progress})`;
+        
+        // Estado Master
+        this.timerElement.classList.toggle('master', this.isMaster());
     }
 
     adjustTextSize() {
@@ -206,10 +216,23 @@ class Timer {
     }
 
     editTime() {
-        const currentTime = (this.milliseconds / 1000).toFixed(1);
-        const newTime = prompt('Introduce el tiempo en segundos:', currentTime);
-        if(newTime && !isNaN(newTime)) {
-            this.milliseconds = parseFloat(newTime) * 1000;
+        const currentSeconds = Math.floor(this.milliseconds / 1000);
+        const hours = Math.floor(currentSeconds / 3600);
+        const minutes = Math.floor((currentSeconds % 3600) / 60);
+        const seconds = currentSeconds % 60;
+
+        const newTime = prompt(
+            'Introduce el tiempo en formato HH:MM:SS',
+            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        );
+
+        if (newTime) {
+            const parts = newTime.split(':');
+            const hh = parseInt(parts[0]) || 0;
+            const mm = parseInt(parts[1]) || 0;
+            const ss = parseInt(parts[2]) || 0;
+            
+            this.milliseconds = (hh * 3600 + mm * 60 + ss) * 1000;
             this.startTime = Date.now() - this.milliseconds;
             this.updateDisplay();
             this.updateProgress();
@@ -220,7 +243,14 @@ class Timer {
 
     changeColor() {
         currentColorTimer = this;
-        document.getElementById('color-input').value = this.currentColor;
+        const colorPicker = document.getElementById('color-input');
+        colorPicker.value = this.currentColor;
+        
+        // Actualizar solo el borde temporalmente
+        colorPicker.addEventListener('input', (e) => {
+            this.timerElement.style.setProperty('--timer-color', e.target.value);
+        }, {once: true});
+        
         document.querySelector('.color-picker').style.display = 'block';
     }
 
@@ -279,7 +309,7 @@ function applyColor() {
     if(currentColorTimer) {
         const colorValue = document.getElementById('color-input').value;
         currentColorTimer.currentColor = colorValue;
-        currentColorTimer.timerElement.style.setProperty('--timer-color', colorValue);
+        // Aplicar a todos los elementos
         currentColorTimer.progressFill.style.backgroundColor = colorValue;
         currentColorTimer.progressBar.style.backgroundColor = colorValue;
         document.querySelector('.color-picker').style.display = 'none';
@@ -289,7 +319,6 @@ function applyColor() {
 document.querySelector('.add-counter').addEventListener('click', () => {
     const newTimer = new Timer();
     document.querySelector('.counters-container').appendChild(newTimer.element);
-    // Forzar el cálculo del tamaño después de añadirlo al DOM
     requestAnimationFrame(() => {
         newTimer.adjustTextSize();
     });
