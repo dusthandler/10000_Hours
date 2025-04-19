@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contadores Circulares Pro</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>10.000 Hours</h1>
+    <div class="counters-container"></div>
+    <div class="add-counter">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <template id="timer-template">
+        <div class="timer-wrapper" draggable="true">
+            <div class="timer">
+                <div class="progress-container">
+                    <div class="progress-fill"></div>
+                    <div class="progress-bar"></div>
+                    <div class="timer-content">
+                        <div class="timer-name">Nuevo</div>
+                        <div class="timer-time">0.0s</div>
+                    </div>
+                </div>
+            </div>
+            <div class="context-menu">
+                <div class="menu-item" data-action="rename">Renombrar</div>
+                <div class="menu-item" data-action="edit-time">Editar tiempo</div>
+                <div class="menu-item" data-action="color">Cambiar color</div>
+                <div class="menu-item" data-action="reset">Reiniciar</div>
+                <div class="menu-item" data-action="delete">Eliminar</div>
+            </div>
+        </div>
+    </template>
+
+    <div class="color-picker">
+        <input type="color" id="color-input" value="#4a90e2">
+        <button onclick="applyColor()">Aplicar</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+:root {
+    --base-size: 140px;
+    --active-size: 160px;
+    --timer-color: #4a90e2;
+}
+
+body {
+    font-family: 'Comfortaa', cursive;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #2a2a2a; /* Cambiado a gris oscuro */
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    color: #fff; /* Texto blanco para mejor contraste */
+}
+
+.counters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+    max-width: 1000px;
+    padding-bottom: 80px;
+}
+
+.timer-wrapper {
+    position: relative;
+    transition: all 0.3s;
+    margin: 15px;
+}
+
+.timer-wrapper.dragging {
+    opacity: 0.5;
+    transform: scale(0.9);
+}
+
+.timer-wrapper.drag-over {
+    border: 2px dashed var(--timer-color);
+    margin: -2px;
+}
+
+.timer {
+    width: var(--base-size);
+    height: var(--base-size);
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    background: #3a3a3a; /* Fondo del círculo más oscuro */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Sombra más pronunciada */
+    transition: all 0.3s;
+    touch-action: none;
+    overflow: visible;
+}
+
+.timer.active {
+    transform: scale(1.15);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.timer::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(100% + 24px);
+    height: calc(100% + 24px);
+    transform: translate(-50%, -50%);
+    border: 2px dashed #ccc;
+    border-radius: 50%;
+    opacity: 0.3;
+    transition: all 0.5s ease;
+    z-index: -1;
+    transition: 
+    border-color 0.3s ease,
+    opacity 0.3s ease,
+    border-style 0.8s ease;
+}
+
+.progress-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: visible;
+}
+
+/* Efecto de onda corregido */
+.wave-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border: 2px solid;
+    border-radius: 50%;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+    mix-blend-mode: screen;
+    filter: brightness(1.8);
+    z-index: 1;
+    animation: rippleWave 1.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes rippleWave {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0.8;
+        border-width: 8px;
+    }
+    50% {
+        border-width: 4px;
+        filter: brightness(1.5);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.6);
+        opacity: 0;
+        border-width: 1px;
+        filter: brightness(1.2);
+    }
+}
+
+@keyframes activeGlow {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+.timer.active::before {
+    content: '';
+    position: absolute;
+    width: calc(100% + 24px); /* Aumentar tamaño */
+    height: calc(100% + 24px);
+    top: 70px;
+    left: 70px;
+    border: 4px dashed var(--timer-color); /* Borde más grueso */
+    border-radius: 50%;
+    animation: activeGlow 8s linear infinite, glowPulse 2s ease-in-out infinite;
+    z-index: 0; /* Mayor z-index */
+    opacity: 1;
+    filter: brightness(1.5);
+    box-shadow: 0 0 25px var(--timer-color); /* Añadir sombra */
+    border-color: var(--timer-color);
+    opacity: 1;
+    animation: 
+        activeGlow 8s linear infinite,
+        dashToSolid 0.8s forwards;
+    border-width: 3px;
+}
+
+@keyframes pulseGlow {
+    0% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.05); }
+    100% { opacity: 0.3; transform: scale(1); }
+}
+
+.timer.active .progress-fill {
+    animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        opacity: 0.1;
+        transform: scale(0.95);
+    }
+    50% {
+        opacity: 0.3;
+        transform: scale(1.05);
+    }
+}
+
+.timer.active::after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    width: calc(100% + 30px);
+    height: calc(100% + 30px);
+    border-radius: 50%;
+    background: var(--timer-color);
+    filter: blur(25px);
+    opacity: 0;
+    animation: glowPulse 2.5s ease-in-out infinite;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Animación para unir las líneas */
+@keyframes dashToSolid {
+    0% {
+        border-style: dashed;
+        border-spacing: 8px;
+    }
+    100% {
+        border-style: solid;
+    }
+}
+
+.progress-fill {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--timer-color);
+    opacity: 0.2;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    z-index: 0;
+}
+
+.progress-bar {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--timer-color);
+    border-radius: 50%;
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.4, 1.2);
+    z-index: 0;
+}
+
+.timer-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    gap: 5px;
+    margin: 0;
+}
+
+.timer-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        -1px 0 0 #000,
+        1px 0 0 #000,
+        0 -1px 0 #000,
+        0 1px 0 #000;
+    text-align: center;
+    line-height: 1.2;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    padding: 0 10px;
+}
+
+.timer-time {
+    font-size: 1.4em;
+    font-weight: 500;
+    color: white;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        -1px 0 0 #000,
+        1px 0 0 #000,
+        0 -1px 0 #000,
+        0 1px 0 #000;
+    text-align: center;
+    line-height: 1.2;
+    width: 100%;
+    margin: 0;
+    padding: 0 10px;
+    font-family: 'Comfortaa', cursive;
+}
+
+.add-counter {
+    width: var(--base-size);
+    height: var(--base-size);
+    border: 2px dashed #666; /* Borde gris */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: fixed;
+    bottom: 30px;
+    background: #3a3a3a; /* Fondo gris oscuro */
+    z-index: 10;
+}
+
+.add-counter:hover {
+    border-color: var(--timer-color);
+    transform: scale(1.1);
+}
+
+.add-counter i {
+    font-size: 32px;
+    color: var(--timer-color);
+}
+
+.context-menu {
+    position: absolute;
+    background: #3a3a3a; /* Fondo gris oscuro */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5); /* Sombra más oscura */
+    border-radius: 8px;
+    padding: 8px;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    min-width: 120px;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    pointer-events: all;
+    font-family: 'Comfortaa', cursive;
+}
+
+.menu-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #eee;
+}
+
+.menu-item:hover {
+    background: #4a4a4a;
+}
+
+.color-picker {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    font-family: 'Comfortaa', cursive;
+}
+
+.color-picker button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: var(--timer-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0); }
+    50% { transform: scale(0.5); }
+    100% { transform: scale(1); }
+}
+
+.timer-wrapper.animating {
+    animation: pulse 0.3s ease-in-out;
+}
