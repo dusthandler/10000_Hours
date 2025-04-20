@@ -85,7 +85,8 @@ class Timer {
         if (e.button !== 0 || this.element.querySelector('.context-menu').style.display === 'flex') return;
         
         this.isDragging = false;
-        const containerRect = document.querySelector('.counters-container').getBoundingClientRect();
+        const container = document.querySelector('.counters-container');
+        const containerRect = container.getBoundingClientRect();
         const elementRect = this.element.getBoundingClientRect();
         
         this.initialX = e.clientX - (elementRect.left - containerRect.left);
@@ -196,11 +197,14 @@ class Timer {
             this.timerElement.classList.toggle('pulsing', this.isActive);
         }
 
+        // Actualizar borde
         if(this.isActive) {
+            this.timerElement.style.setProperty('--border-style', 'solid');
             this.startTime = Date.now() - this.milliseconds;
             this.start();
             this.startWave();
         } else {
+            this.timerElement.style.setProperty('--border-style', 'dashed');
             this.stop();
             this.stopWave();
         }
@@ -355,13 +359,10 @@ class Timer {
         colorPicker.value = this.currentColor;
         
         const updateColor = (e) => {
-            if(!this.isMaster()) {
-                this.currentColor = e.target.value;
-                this.timerElement.style.setProperty('--timer-color', this.currentColor);
-                this.progressFill.style.backgroundColor = this.currentColor;
-                this.progressBar.style.backgroundColor = this.currentColor;
-                this.timerElement.querySelector('.timer-name').style.color = this.currentColor;
-            }
+            this.currentColor = e.target.value;
+            this.timerElement.style.setProperty('--timer-color', this.currentColor);
+            this.progressFill.style.backgroundColor = this.currentColor;
+            this.progressBar.style.backgroundColor = this.currentColor;
         };
         
         colorPicker.addEventListener('input', updateColor);
@@ -369,6 +370,7 @@ class Timer {
         
         colorPicker.addEventListener('change', () => {
             colorPicker.removeEventListener('input', updateColor);
+            document.querySelector('.color-picker').style.display = 'none';
         }, {once: true});
     }
 
@@ -381,6 +383,7 @@ class Timer {
         this.stopWave();
         this.isActive = false;
         this.timerElement.classList.remove('active');
+        this.timerElement.style.setProperty('--border-style', 'dashed');
     }
 
     delete() {
@@ -394,7 +397,7 @@ let positions = {};
 let gridMode = true;
 
 function applyColor() {
-    if(currentColorTimer && !currentColorTimer.isMaster()) {
+    if(currentColorTimer) {
         currentColorTimer.progressFill.style.backgroundColor = currentColorTimer.currentColor;
         currentColorTimer.progressBar.style.backgroundColor = currentColorTimer.currentColor;
         document.querySelector('.color-picker').style.display = 'none';
@@ -433,12 +436,14 @@ function sortByName() {
         return a.querySelector('.timer-name').textContent.localeCompare(b.querySelector('.timer-name').textContent);
     });
     
+    const timerWidth = timers[0]?.offsetWidth || 140;
+    const margin = 30;
+    
     timers.forEach((timer, index) => {
-        const x = 50 + index * 20;
-        const y = 100 + index * 120;
+        const x = index * (timerWidth + margin);
+        const y = 100;
         timer.style.left = `${x}px`;
         timer.style.top = `${y}px`;
-        timer.style.transform = 'translate(0, 0)';
         positions[timer.dataset.id] = {x, y};
     });
 }
@@ -450,12 +455,14 @@ function sortByTime() {
         return b.timer.milliseconds - a.timer.milliseconds;
     });
     
+    const timerWidth = timers[0]?.offsetWidth || 140;
+    const margin = 30;
+    
     timers.forEach((timer, index) => {
-        const x = window.innerWidth - 200;
-        const y = 100 + index * 120;
+        const x = index * (timerWidth + margin);
+        const y = 100;
         timer.style.left = `${x}px`;
         timer.style.top = `${y}px`;
-        timer.style.transform = 'translate(0, 0)';
         positions[timer.dataset.id] = {x, y};
     });
 }
@@ -480,7 +487,7 @@ document.querySelector('.add-counter').addEventListener('click', () => {
 });
 
 document.getElementById('color-input').addEventListener('input', (e) => {
-    if(currentColorTimer && !currentColorTimer.isMaster()) {
+    if(currentColorTimer) {
         currentColorTimer.timerElement.style.setProperty('--timer-color', e.target.value);
     }
 });
