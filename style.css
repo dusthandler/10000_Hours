@@ -92,10 +92,7 @@ h1 {
 }
 
 
-.timer.active {
-    animation: breath 2s ease-in-out infinite;
-    transform-origin: center;
-}
+
 
 
 .timer.active::before {
@@ -447,4 +444,36 @@ h1 {
     .timer-time {
         font-size: 1em;
     }
+}
+/* Breathing effect only on the circle */
+.timer.active .progress-container {
+    animation: breath 2s ease-in-out infinite;
+    transform-origin: center;
+}
+
+/* Counter text enlarges when active */
+.timer.active .timer-time {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+    transform-origin: center;
+}
+
+/* Contador completo se amplía al activarse */
+.timer.active {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+    transform-origin: center;
+}
+
+/* Efecto de respiración más notorio solo en el círculo */
+.timer.active .progress-container {
+    animation: breath 1.2s ease-in-out infinite;
+    transform-origin: center;
+}
+
+/* Definición de animación más fuerte */
+@keyframes breath {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
 }

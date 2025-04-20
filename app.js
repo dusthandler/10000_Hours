@@ -7,7 +7,8 @@ class Timer {
         this.progressFill = this.element.querySelector('.progress-fill');
         this.progressBar = this.element.querySelector('.progress-bar');
         this.progressContainer = this.element.querySelector('.progress-container');
-        
+        this.contextMenu = this.element.querySelector('.context-menu');
+
         this.milliseconds = 0;
         this.isActive = false;
         this.interval = null;
@@ -15,9 +16,8 @@ class Timer {
         this.currentColor = '#4a90e2';
         this.startTime = 0;
         this.isDragging = false;
-        this.dragThreshold = 5;
-        this.initialX = 0;
-        this.initialY = 0;
+        this.offsetX = 0;
+        this.offsetY = 0;
         this.preventClick = false;
         this.waveInterval = null;
         this.closeMenuHandler = null;
@@ -26,11 +26,10 @@ class Timer {
         this.setupEvents();
         this.updateDisplay();
         this.adjustTextSize();
-        
+
         this.element.style.position = 'absolute';
         this.element.style.left = '0px';
         this.element.style.top = '0px';
-        this.element.style.transform = 'translate(0, 0)';
     }
 
     setupEvents() {
@@ -39,7 +38,9 @@ class Timer {
         });
 
         this.timerElement.addEventListener('mousedown', (e) => {
-            if (this.element.querySelector('.context-menu').style.display === 'flex') {
+            if (e.button !== 0) return; // Solo botón izquierdo
+            
+            if (this.contextMenu.style.display === 'flex') {
                 this.preventClick = true;
                 return;
             }
@@ -50,22 +51,36 @@ class Timer {
                 this.showMenu();
                 this.preventClick = true;
             }, 800);
-            
-            this.handleDragStart(e);
-        });
 
-        this.timerElement.addEventListener('mouseup', (e) => {
-            clearTimeout(this.longPressTimer);
-            
-            if (!this.isDragging && this.element.querySelector('.context-menu').style.display !== 'flex') {
-                const dx = e.clientX - this.dragStartX;
-                const dy = e.clientY - this.dragStartY;
-                if (Math.sqrt(dx*dx + dy*dy) > 10) this.preventClick = true;
-            }
+            // Configuración para arrastrar
+            const handleMove = (moveEvent) => {
+                if (!this.isDragging) {
+                    const dx = moveEvent.clientX - this.dragStartX;
+                    const dy = moveEvent.clientY - this.dragStartY;
+                    if (Math.sqrt(dx*dx + dy*dy) > 10) {
+                        this.startDragging(moveEvent);
+                    }
+                } else {
+                    this.handleDragMove(moveEvent);
+                }
+            };
 
-            if (this.preventClick) {
-                setTimeout(() => this.preventClick = false, 100);
-            }
+            const handleUp = () => {
+                clearTimeout(this.longPressTimer);
+                document.removeEventListener('mousemove', handleMove);
+                document.removeEventListener('mouseup', handleUp);
+                
+                if (this.isDragging) {
+                    this.handleDragEnd();
+                }
+                
+                if (this.preventClick) {
+                    setTimeout(() => this.preventClick = false, 100);
+                }
+            };
+
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleUp);
         });
 
         this.timerElement.addEventListener('mouseleave', () => {
@@ -81,96 +96,50 @@ class Timer {
         });
     }
 
-    handleDragStart(e) {
-        if (e.button !== 0 || this.element.querySelector('.context-menu').style.display === 'flex') return;
-        
-        this.isDragging = false;
-        const container = document.querySelector('.counters-container');
-        const containerRect = container.getBoundingClientRect();
-        const elementRect = this.element.getBoundingClientRect();
-        
-        this.initialX = e.clientX - (elementRect.left - containerRect.left);
-        this.initialY = e.clientY - (elementRect.top - containerRect.top);
-        
-        const handleMove = (moveEvent) => {
-            const dx = moveEvent.clientX - e.clientX;
-            const dy = moveEvent.clientY - e.clientY;
-            
-            if (!this.isDragging && (Math.abs(dx) > this.dragThreshold || Math.abs(dy) > this.dragThreshold)) {
-                this.startDragging(e);
-            }
-            
-            if (this.isDragging) {
-                this.handleDragMove(moveEvent);
-            }
-        };
-
-        const handleUp = () => {
-            document.removeEventListener('mousemove', handleMove);
-            document.removeEventListener('mouseup', handleUp);
-            
-            if (this.isDragging) {
-                this.handleDragEnd();
-            }
-        };
-
-        document.addEventListener('mousemove', handleMove);
-        document.addEventListener('mouseup', handleUp);
-    }
-
     startDragging(e) {
         this.isDragging = true;
         this.preventClick = true;
         this.element.classList.add('dragging');
-        this.element.style.cursor = 'grabbing';
-        this.element.style.transition = 'none';
         this.closeMenu();
+        
+        const container = document.querySelector('.counters-container');
+        this.containerRect = container.getBoundingClientRect();
+        this.offsetX = e.clientX - this.element.offsetLeft;
+        this.offsetY = e.clientY - this.element.offsetTop;
     }
 
     handleDragMove(e) {
         if (!this.isDragging) return;
         
-        const container = document.querySelector('.counters-container');
-        const containerRect = container.getBoundingClientRect();
+        let x = e.clientX - this.offsetX;
+        let y = e.clientY - this.offsetY;
         
-        const newX = e.clientX - containerRect.left - this.initialX;
-        const newY = e.clientY - containerRect.top - this.initialY;
+        // Limitar al contenedor
+        x = Math.max(0, Math.min(x, this.containerRect.width - this.element.offsetWidth));
+        y = Math.max(0, Math.min(y, this.containerRect.height - this.element.offsetHeight));
         
-        const maxX = containerRect.width - this.element.offsetWidth;
-        const maxY = containerRect.height - this.element.offsetHeight;
-        
-        const boundedX = Math.max(0, Math.min(newX, maxX));
-        const boundedY = Math.max(0, Math.min(newY, maxY));
-        
-        this.element.style.transform = `translate(${boundedX}px, ${boundedY}px)`;
+        this.element.style.left = `${x}px`;
+        this.element.style.top = `${y}px`;
     }
 
     handleDragEnd() {
         if (!this.isDragging) return;
         
-        const transform = this.element.style.transform.match(/-?\d+\.?\d*/g) || [0, 0];
-        this.element.style.left = `${parseFloat(transform[0])}px`;
-        this.element.style.top = `${parseFloat(transform[1])}px`;
-        this.element.style.transform = 'translate(0, 0)';
-        
-        this.element.classList.remove('dragging');
-        this.element.style.cursor = 'grab';
-        this.element.style.transition = 'all 0.3s ease';
         this.isDragging = false;
+        this.element.classList.remove('dragging');
         
         positions[this.element.dataset.id] = {
-            x: parseFloat(transform[0]),
-            y: parseFloat(transform[1])
+            x: parseFloat(this.element.style.left),
+            y: parseFloat(this.element.style.top)
         };
     }
 
     showMenu() {
-        const menu = this.element.querySelector('.context-menu');
-        menu.style.display = 'flex';
+        this.contextMenu.style.display = 'flex';
         
         this.closeMenuHandler = (e) => {
             const clickedElement = e.target;
-            const isMenuClick = clickedElement.closest('.context-menu') === menu;
+            const isMenuClick = clickedElement.closest('.context-menu') === this.contextMenu;
             const isTimerClick = clickedElement.closest('.timer') === this.timerElement;
             
             if (!isMenuClick && !isTimerClick) {
@@ -182,10 +151,10 @@ class Timer {
     }
 
     closeMenu() {
-        const menu = this.element.querySelector('.context-menu');
-        menu.style.display = 'none';
+        this.contextMenu.style.display = 'none';
         if (this.closeMenuHandler) {
             document.removeEventListener('pointerdown', this.closeMenuHandler);
+            this.closeMenuHandler = null;
         }
     }
 
@@ -196,7 +165,6 @@ class Timer {
             this.timerElement.classList.toggle('pulsing', this.isActive);
         }
 
-        // Actualizar borde
         if(this.isActive) {
             this.timerElement.style.setProperty('--border-style', 'solid');
             this.startTime = Date.now() - this.milliseconds;
@@ -422,7 +390,6 @@ function organizeGrid() {
         timer.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
         timer.style.left = `${x}px`;
         timer.style.top = `${y}px`;
-        timer.style.transform = 'translate(0, 0)';
         
         positions[timer.dataset.id] = {x, y};
     });
