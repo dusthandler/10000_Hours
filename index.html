@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>10.000 Hours</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -16,7 +16,7 @@
     </div>
 
     <template id="timer-template">
-        <div class="timer-wrapper" draggable="true">
+        <div class="timer-wrapper">
             <div class="timer">
                 <div class="progress-container">
                     <div class="progress-fill"></div>
@@ -40,6 +40,12 @@
     <div class="color-picker">
         <input type="color" id="color-input" value="#4a90e2">
         <button onclick="applyColor()">Aplicar</button>
+    </div>
+
+    <div class="controls">
+        <button onclick="organizeGrid()">Organizar en Grid</button>
+        <button onclick="sortByName()">Ordenar por Nombre</button>
+        <button onclick="sortByTime()">Ordenar por Tiempo</button>
     </div>
 
     <script src="app.js"></script>

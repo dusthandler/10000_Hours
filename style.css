@@ -1,9 +1,13 @@
 :root {
-    --base-size: 140px;
-    --active-size: 160px;
+    --base-size: 80px;
     --timer-color: #4a90e2;
     --size-factor: 1;
+    --growth-factor: 0.8;
     --master-color: #ffd700;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 body {
@@ -18,54 +22,54 @@ body {
     user-select: none;
     -webkit-font-smoothing: antialiased;
     color: #fff;
+    overflow-x: hidden;
+}
+
+h1 {
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 30px;
 }
 
 .counters-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
-    justify-content: center;
-    max-width: 1000px;
-    padding-bottom: 80px;
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    margin: 20px auto;
+    padding-bottom: 100px;
+    overflow: visible;
+    touch-action: none;
 }
 
 .timer-wrapper {
-    position: relative;
-    transition: all 0.3s;
-    margin: 15px;
+    position: absolute;
+    cursor: grab;
+    transition: all 0.3s ease;
+    transform: translate(0, 0);
+    will-change: transform;
+    z-index: 1;
+    user-select: none;
 }
 
 .timer-wrapper.dragging {
-    opacity: 0.5;
-    transform: scale(0.9);
-}
-
-.timer-wrapper.drag-over {
-    border: 2px dashed var(--timer-color);
-    margin: -2px;
+    transition: none;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    cursor: grabbing;
+    pointer-events: none;
 }
 
 .timer {
-    width: calc(var(--base-size) * var(--size-factor));
-    height: calc(var(--base-size) * var(--size-factor));
+    width: calc(var(--base-size) * calc(1 + var(--size-factor) * var(--growth-factor)));
+    height: calc(var(--base-size) * calc(1 + var(--size-factor) * var(--growth-factor)));
     border-radius: 50%;
     cursor: pointer;
     position: relative;
     background: #3a3a3a;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    transition: all 0.4s ease;
     touch-action: none;
     overflow: visible;
-}
-
-.timer.active {
-    transform: scale(1.15);
-    animation: bounce 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-@keyframes bounce {
-    0%, 100% { transform: scale(1.15); }
-    50% { transform: scale(1.25); }
 }
 
 .timer::before {
@@ -76,72 +80,97 @@ body {
     width: calc(100% + 24px);
     height: calc(100% + 24px);
     transform: translate(-50%, -50%);
-    border: 3px dashed #ccc;
+    border: 3px solid var(--timer-color);
     border-radius: 50%;
     opacity: 0.3;
-    transition: all 0.5s ease;
     z-index: -1;
+    transition: all 0.3s ease;
 }
 
 .timer.active::before {
-    border-color: var(--timer-color);
     opacity: 1;
     animation: 
         activeGlow 8s linear infinite,
-        dashToSolid 0.8s forwards;
-    border-width: 3px;
+        pulseGlow 2s ease infinite;
 }
 
 @keyframes activeGlow {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-@keyframes dashToSolid {
-    0% {
-        border-style: dashed;
-        border-spacing: 8px;
+@keyframes pulseGlow {
+    0%, 100% { 
+        box-shadow: 0 0 10px var(--timer-color);
+        filter: brightness(1.2);
     }
-    100% {
-        border-style: solid;
+    50% { 
+        box-shadow: 0 0 25px var(--timer-color);
+        filter: brightness(1.5);
     }
 }
 
 .timer.master::before {
-    border-color: var(--master-color) !important;
-    filter: drop-shadow(0 0 25px var(--master-color));
+    border-color: var(--master-color);
+    box-shadow: 0 0 25px var(--master-color);
+}
+
+.timer.master.active::before {
+    animation: 
+        activeGlow 8s linear infinite,
+        masterPulse 1.5s ease infinite;
+}
+
+@keyframes masterPulse {
+    0%, 100% { 
+        box-shadow: 0 0 25px var(--master-color);
+        opacity: 0.8;
+    }
+    50% { 
+        box-shadow: 0 0 45px var(--master-color);
+        opacity: 1;
+    }
 }
 
 .timer.master::after {
     content: 'MASTER';
     position: absolute;
-    top: -35px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
+    background: #2a2a2a;
+    padding: 2px 20px;
+    z-index: 4;
     color: var(--master-color);
-    font-weight: bold;
-    text-transform: uppercase;
+    font-weight: 900;
+    font-size: 12px;
     letter-spacing: 2px;
-    font-size: 0.8em;
-    text-shadow: 0 0 10px var(--master-color);
+    text-transform: uppercase;
+    text-shadow: 0 0 8px var(--master-color);
+    clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+    border-radius: 3px;
 }
 
-.timer.master.active::before {
-    animation: masterGlow 2s ease infinite;
+@keyframes bounceIn {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1.25); }
 }
 
-@keyframes masterGlow {
-    0%, 100% { opacity: 0.8; }
-    50% { opacity: 1; }
+@keyframes bounceOut {
+    0% { transform: scale(1.25); }
+    40% { transform: scale(0.85); }
+    70% { transform: scale(1.05); }
+    100% { transform: scale(0.95); }
 }
 
-.timer.master:not(.active)::before {
-    border-style: solid !important;
-    opacity: 0.6 !important;
+.timer.active {
+    animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.timer:not(.active) {
+    animation: bounceOut 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .progress-container {
@@ -166,7 +195,6 @@ body {
     mix-blend-mode: screen;
     filter: brightness(1.8);
     z-index: 1;
-    animation: rippleWave 1.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
 @keyframes rippleWave {
@@ -279,8 +307,9 @@ body {
     transition: all 0.3s;
     position: fixed;
     bottom: 30px;
+    right: 30px;
     background: #3a3a3a;
-    z-index: 10;
+    z-index: 100;
 }
 
 .add-counter:hover {
@@ -299,7 +328,7 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     border-radius: 8px;
     padding: 8px;
-    z-index: 100;
+    z-index: 1001;
     display: none;
     flex-direction: column;
     min-width: 120px;
@@ -307,7 +336,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
     margin-top: 10px;
-    pointer-events: all;
+    pointer-events: auto;
     font-family: 'Comfortaa', cursive;
 }
 
@@ -317,10 +346,14 @@ body {
     border-radius: 4px;
     font-size: 14px;
     color: #eee;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .menu-item:hover {
     background: #4a4a4a;
+    transform: translateX(2px);
 }
 
 .color-picker {
@@ -347,6 +380,41 @@ body {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s ease;
+    width: 100%;
+}
+
+.color-picker button:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+}
+
+.controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 60%;
+}
+
+.controls button {
+    padding: 8px 16px;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Comfortaa', cursive;
+    white-space: nowrap;
+}
+
+.controls button:hover {
+    background: #357abd;
+    transform: translateY(-2px);
 }
 
 @keyframes pulse {
@@ -357,4 +425,40 @@ body {
 
 .timer-wrapper.animating {
     animation: pulse 0.3s ease-in-out;
+}
+
+@media (max-width: 768px) {
+    .controls {
+        position: static;
+        max-width: 100%;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    
+    .timer-name {
+        font-size: 14px;
+    }
+    
+    .timer-time {
+        font-size: 1.2em;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --base-size: 70px;
+    }
+    
+    .controls button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .timer-name {
+        font-size: 12px;
+    }
+    
+    .timer-time {
+        font-size: 1em;
+    }
 }

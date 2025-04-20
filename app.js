@@ -15,38 +15,55 @@ class Timer {
         this.currentColor = '#4a90e2';
         this.startTime = 0;
         this.isDragging = false;
-        this.dragStartX = 0;
-        this.dragStartY = 0;
+        this.dragThreshold = 5;
+        this.initialX = 0;
+        this.initialY = 0;
         this.preventClick = false;
         this.waveInterval = null;
+        this.closeMenuHandler = null;
+        this.element.dataset.id = Date.now() + Math.random().toString(36).substr(2, 9);
 
         this.setupEvents();
         this.updateDisplay();
         this.adjustTextSize();
+        
+        this.element.style.position = 'absolute';
+        this.element.style.left = '0px';
+        this.element.style.top = '0px';
+        this.element.style.transform = 'translate(0, 0)';
     }
 
     setupEvents() {
         this.timerElement.addEventListener('click', (e) => {
-            if(!this.isDragging && !this.preventClick) this.toggleTimer();
+            if (!this.isDragging && !this.preventClick) this.toggleTimer();
         });
 
         this.timerElement.addEventListener('mousedown', (e) => {
+            if (this.element.querySelector('.context-menu').style.display === 'flex') {
+                this.preventClick = true;
+                return;
+            }
+            
             this.dragStartX = e.clientX;
             this.dragStartY = e.clientY;
             this.longPressTimer = setTimeout(() => {
                 this.showMenu();
                 this.preventClick = true;
             }, 800);
+            
+            this.handleDragStart(e);
         });
 
         this.timerElement.addEventListener('mouseup', (e) => {
             clearTimeout(this.longPressTimer);
-            const dx = e.clientX - this.dragStartX;
-            const dy = e.clientY - this.dragStartY;
-            if(Math.sqrt(dx*dx + dy*dy) > 10) this.preventClick = true;
-            if(this.preventClick) {
-                e.preventDefault();
-                e.stopPropagation();
+            
+            if (!this.isDragging && this.element.querySelector('.context-menu').style.display !== 'flex') {
+                const dx = e.clientX - this.dragStartX;
+                const dy = e.clientY - this.dragStartY;
+                if (Math.sqrt(dx*dx + dy*dy) > 10) this.preventClick = true;
+            }
+
+            if (this.preventClick) {
                 setTimeout(() => this.preventClick = false, 100);
             }
         });
@@ -56,22 +73,129 @@ class Timer {
         });
 
         this.element.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', (e) => {
+            item.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
                 this.handleMenuClick(e);
                 this.closeMenu();
             });
         });
+    }
 
-        this.element.addEventListener('dragstart', (e) => this.handleDragStart(e));
-        this.element.addEventListener('dragover', (e) => this.handleDragOver(e));
-        this.element.addEventListener('drop', (e) => this.handleDrop(e));
-        this.element.addEventListener('dragend', (e) => this.handleDragEnd(e));
+    handleDragStart(e) {
+        if (e.button !== 0 || this.element.querySelector('.context-menu').style.display === 'flex') return;
+        
+        this.isDragging = false;
+        const containerRect = document.querySelector('.counters-container').getBoundingClientRect();
+        const elementRect = this.element.getBoundingClientRect();
+        
+        this.initialX = e.clientX - (elementRect.left - containerRect.left);
+        this.initialY = e.clientY - (elementRect.top - containerRect.top);
+        
+        const handleMove = (moveEvent) => {
+            const dx = moveEvent.clientX - e.clientX;
+            const dy = moveEvent.clientY - e.clientY;
+            
+            if (!this.isDragging && (Math.abs(dx) > this.dragThreshold || Math.abs(dy) > this.dragThreshold)) {
+                this.startDragging(e);
+            }
+            
+            if (this.isDragging) {
+                this.handleDragMove(moveEvent);
+            }
+        };
+
+        const handleUp = () => {
+            document.removeEventListener('mousemove', handleMove);
+            document.removeEventListener('mouseup', handleUp);
+            
+            if (this.isDragging) {
+                this.handleDragEnd();
+            }
+        };
+
+        document.addEventListener('mousemove', handleMove);
+        document.addEventListener('mouseup', handleUp);
+    }
+
+    startDragging(e) {
+        this.isDragging = true;
+        this.preventClick = true;
+        this.element.classList.add('dragging');
+        this.element.style.cursor = 'grabbing';
+        this.element.style.transition = 'none';
+        this.closeMenu();
+    }
+
+    handleDragMove(e) {
+        if (!this.isDragging) return;
+        
+        const container = document.querySelector('.counters-container');
+        const containerRect = container.getBoundingClientRect();
+        
+        const newX = e.clientX - containerRect.left - this.initialX;
+        const newY = e.clientY - containerRect.top - this.initialY;
+        
+        const maxX = containerRect.width - this.element.offsetWidth;
+        const maxY = containerRect.height - this.element.offsetHeight;
+        
+        const boundedX = Math.max(0, Math.min(newX, maxX));
+        const boundedY = Math.max(0, Math.min(newY, maxY));
+        
+        this.element.style.transform = `translate(${boundedX}px, ${boundedY}px)`;
+    }
+
+    handleDragEnd() {
+        if (!this.isDragging) return;
+        
+        const transform = this.element.style.transform.match(/-?\d+\.?\d*/g) || [0, 0];
+        this.element.style.left = `${parseFloat(transform[0])}px`;
+        this.element.style.top = `${parseFloat(transform[1])}px`;
+        this.element.style.transform = 'translate(0, 0)';
+        
+        this.element.classList.remove('dragging');
+        this.element.style.cursor = 'grab';
+        this.element.style.transition = 'all 0.3s ease';
+        this.isDragging = false;
+        
+        positions[this.element.dataset.id] = {
+            x: parseFloat(transform[0]),
+            y: parseFloat(transform[1])
+        };
+    }
+
+    showMenu() {
+        const menu = this.element.querySelector('.context-menu');
+        menu.style.display = 'flex';
+        
+        this.closeMenuHandler = (e) => {
+            const clickedElement = e.target;
+            const isMenuClick = clickedElement.closest('.context-menu') === menu;
+            const isTimerClick = clickedElement.closest('.timer') === this.timerElement;
+            
+            if (!isMenuClick && !isTimerClick) {
+                this.closeMenu();
+            }
+        };
+        
+        document.addEventListener('pointerdown', this.closeMenuHandler);
+    }
+
+    closeMenu() {
+        const menu = this.element.querySelector('.context-menu');
+        menu.style.display = 'none';
+        if (this.closeMenuHandler) {
+            document.removeEventListener('pointerdown', this.closeMenuHandler);
+        }
     }
 
     toggleTimer() {
         this.isActive = !this.isActive;
         this.timerElement.classList.toggle('active', this.isActive);
         
+        if(this.isMaster()) {
+            this.timerElement.classList.toggle('pulsing', this.isActive);
+        }
+
         if(this.isActive) {
             this.startTime = Date.now() - this.milliseconds;
             this.start();
@@ -149,21 +273,26 @@ class Timer {
     }
 
     isMaster() {
-        return this.milliseconds >= 36000000000; // 10,000 horas
+        return this.milliseconds >= 36000000000;
     }
 
     updateProgress() {
-        const totalHours = 36000000000; // 10,000 horas
+        const totalHours = 36000000000;
         const progress = Math.min(this.milliseconds / totalHours, 1);
         
-        // Tamaño dinámico
-        const sizeFactor = 1 + (progress * 0.5);
+        const sizeFactor = 1 + (progress * 1.2);
         this.timerElement.style.setProperty('--size-factor', sizeFactor);
         
         this.progressBar.style.transform = `scale(${progress})`;
         
-        // Estado Master
-        this.timerElement.classList.toggle('master', this.isMaster());
+        const isMaster = this.isMaster();
+        this.timerElement.classList.toggle('master', isMaster);
+        
+        if(isMaster) {
+            this.timerElement.style.setProperty('--timer-color', this.currentColor);
+            this.progressFill.style.backgroundColor = this.currentColor;
+            this.progressBar.style.backgroundColor = this.currentColor;
+        }
     }
 
     adjustTextSize() {
@@ -176,27 +305,6 @@ class Timer {
         } else {
             this.timeDisplay.style.fontSize = '1.4em';
         }
-    }
-
-    showMenu() {
-        const menu = this.element.querySelector('.context-menu');
-        menu.style.display = 'flex';
-        
-        const closeMenu = (e) => {
-            if (!menu.contains(e.target)) {
-                this.closeMenu();
-                document.removeEventListener('click', closeMenu);
-            }
-        };
-        
-        setTimeout(() => {
-            document.addEventListener('click', closeMenu);
-        }, 10);
-    }
-
-    closeMenu() {
-        const menu = this.element.querySelector('.context-menu');
-        menu.style.display = 'none';
     }
 
     handleMenuClick(e) {
@@ -246,12 +354,22 @@ class Timer {
         const colorPicker = document.getElementById('color-input');
         colorPicker.value = this.currentColor;
         
-        // Actualizar solo el borde temporalmente
-        colorPicker.addEventListener('input', (e) => {
-            this.timerElement.style.setProperty('--timer-color', e.target.value);
-        }, {once: true});
+        const updateColor = (e) => {
+            if(!this.isMaster()) {
+                this.currentColor = e.target.value;
+                this.timerElement.style.setProperty('--timer-color', this.currentColor);
+                this.progressFill.style.backgroundColor = this.currentColor;
+                this.progressBar.style.backgroundColor = this.currentColor;
+                this.timerElement.querySelector('.timer-name').style.color = this.currentColor;
+            }
+        };
         
+        colorPicker.addEventListener('input', updateColor);
         document.querySelector('.color-picker').style.display = 'block';
+        
+        colorPicker.addEventListener('change', () => {
+            colorPicker.removeEventListener('input', updateColor);
+        }, {once: true});
     }
 
     reset() {
@@ -267,90 +385,106 @@ class Timer {
 
     delete() {
         this.element.remove();
-    }
-
-    handleDragStart(e) {
-        this.isDragging = true;
-        this.element.classList.add('dragging');
-        e.dataTransfer.setData('text/plain', '');
-        this.dragStartX = e.clientX;
-        this.dragStartY = e.clientY;
-    }
-
-    handleDragOver(e) {
-        e.preventDefault();
-        const draggingElement = document.querySelector('.dragging');
-        if(draggingElement && draggingElement !== this.element) {
-            const rect = this.element.getBoundingClientRect();
-            const nextElement = (e.clientY < rect.top + rect.height/2) ? 
-                this.element : this.element.nextSibling;
-            
-            document.querySelector('.counters-container').insertBefore(
-                draggingElement, 
-                nextElement
-            );
-        }
-    }
-
-    handleDrop(e) {
-        e.preventDefault();
-        this.element.classList.remove('drag-over');
-    }
-
-    handleDragEnd(e) {
-        this.isDragging = false;
-        this.element.classList.remove('dragging');
+        delete positions[this.element.dataset.id];
     }
 }
 
 let currentColorTimer = null;
+let positions = {};
+let gridMode = true;
 
 function applyColor() {
-    if(currentColorTimer) {
-        const colorValue = document.getElementById('color-input').value;
-        currentColorTimer.currentColor = colorValue;
-        // Aplicar a todos los elementos
-        currentColorTimer.progressFill.style.backgroundColor = colorValue;
-        currentColorTimer.progressBar.style.backgroundColor = colorValue;
+    if(currentColorTimer && !currentColorTimer.isMaster()) {
+        currentColorTimer.progressFill.style.backgroundColor = currentColorTimer.currentColor;
+        currentColorTimer.progressBar.style.backgroundColor = currentColorTimer.currentColor;
         document.querySelector('.color-picker').style.display = 'none';
     }
 }
 
+function organizeGrid() {
+    gridMode = true;
+    const container = document.querySelector('.counters-container');
+    const timers = Array.from(container.children);
+    const containerWidth = container.offsetWidth;
+    const itemWidth = 140;
+    const margin = 20;
+    const itemsPerRow = Math.floor((containerWidth - margin) / (itemWidth + margin));
+
+    timers.forEach((timer, index) => {
+        const col = index % itemsPerRow;
+        const row = Math.floor(index / itemsPerRow);
+        
+        const x = col * (itemWidth + margin);
+        const y = row * (itemWidth + margin);
+        
+        timer.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        timer.style.left = `${x}px`;
+        timer.style.top = `${y}px`;
+        timer.style.transform = 'translate(0, 0)';
+        
+        positions[timer.dataset.id] = {x, y};
+    });
+}
+
+function sortByName() {
+    gridMode = false;
+    const container = document.querySelector('.counters-container');
+    const timers = Array.from(container.children).sort((a, b) => {
+        return a.querySelector('.timer-name').textContent.localeCompare(b.querySelector('.timer-name').textContent);
+    });
+    
+    timers.forEach((timer, index) => {
+        const x = 50 + index * 20;
+        const y = 100 + index * 120;
+        timer.style.left = `${x}px`;
+        timer.style.top = `${y}px`;
+        timer.style.transform = 'translate(0, 0)';
+        positions[timer.dataset.id] = {x, y};
+    });
+}
+
+function sortByTime() {
+    gridMode = false;
+    const container = document.querySelector('.counters-container');
+    const timers = Array.from(container.children).sort((a, b) => {
+        return b.timer.milliseconds - a.timer.milliseconds;
+    });
+    
+    timers.forEach((timer, index) => {
+        const x = window.innerWidth - 200;
+        const y = 100 + index * 120;
+        timer.style.left = `${x}px`;
+        timer.style.top = `${y}px`;
+        timer.style.transform = 'translate(0, 0)';
+        positions[timer.dataset.id] = {x, y};
+    });
+}
+
 document.querySelector('.add-counter').addEventListener('click', () => {
     const newTimer = new Timer();
-    document.querySelector('.counters-container').appendChild(newTimer.element);
+    const container = document.querySelector('.counters-container');
+    
+    const startX = (container.offsetWidth - newTimer.element.offsetWidth) / 2;
+    const startY = (container.offsetHeight - newTimer.element.offsetHeight) / 2;
+    
+    newTimer.element.style.left = `${startX}px`;
+    newTimer.element.style.top = `${startY}px`;
+    
+    container.appendChild(newTimer.element);
+    positions[newTimer.element.dataset.id] = {x: startX, y: startY};
+    newTimer.element.timer = newTimer;
+    
     requestAnimationFrame(() => {
         newTimer.adjustTextSize();
     });
 });
 
 document.getElementById('color-input').addEventListener('input', (e) => {
-    if(currentColorTimer) {
+    if(currentColorTimer && !currentColorTimer.isMaster()) {
         currentColorTimer.timerElement.style.setProperty('--timer-color', e.target.value);
     }
 });
 
-document.querySelector('.counters-container').addEventListener('dragover', (e) => {
-    e.preventDefault();
-    const draggingElement = document.querySelector('.dragging');
-    if(draggingElement) {
-        const closestElement = getClosestElement(e.clientY);
-        if(closestElement) {
-            document.querySelectorAll('.timer-wrapper').forEach(el => el.classList.remove('drag-over'));
-            closestElement.classList.add('drag-over');
-        }
-    }
+window.addEventListener('load', () => {
+    setTimeout(organizeGrid, 100);
 });
-
-function getClosestElement(y) {
-    const elements = [...document.querySelectorAll('.timer-wrapper:not(.dragging)')];
-    return elements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height/2;
-        if(offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
-        }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
