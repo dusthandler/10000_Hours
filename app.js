@@ -38,7 +38,7 @@ class Timer {
         });
 
         this.timerElement.addEventListener('mousedown', (e) => {
-            if (e.button !== 0) return; // Solo botón izquierdo
+            if (e.button !== 0) return;
             
             if (this.contextMenu.style.display === 'flex') {
                 this.preventClick = true;
@@ -52,7 +52,6 @@ class Timer {
                 this.preventClick = true;
             }, 800);
 
-            // Configuración para arrastrar
             const handleMove = (moveEvent) => {
                 if (!this.isDragging) {
                     const dx = moveEvent.clientX - this.dragStartX;
@@ -62,6 +61,7 @@ class Timer {
                     }
                 } else {
                     this.handleDragMove(moveEvent);
+                    this.checkCollisions();
                 }
             };
 
@@ -114,12 +114,69 @@ class Timer {
         let x = e.clientX - this.offsetX;
         let y = e.clientY - this.offsetY;
         
-        // Limitar al contenedor
         x = Math.max(0, Math.min(x, this.containerRect.width - this.element.offsetWidth));
         y = Math.max(0, Math.min(y, this.containerRect.height - this.element.offsetHeight));
         
         this.element.style.left = `${x}px`;
         this.element.style.top = `${y}px`;
+    }
+
+    checkCollisions() {
+        const containers = document.querySelectorAll('.timer-wrapper');
+        const currentRect = this.element.getBoundingClientRect();
+        const currentId = this.element.dataset.id;
+        
+        containers.forEach(container => {
+            if (container.dataset.id === currentId) return;
+            
+            const otherRect = container.getBoundingClientRect();
+            const distance = this.calculateDistance(currentRect, otherRect);
+            const minDistance = 100;
+            
+            if (distance < minDistance) {
+                this.applyRepulsion(currentRect, otherRect, container);
+            }
+        });
+    }
+
+    calculateDistance(rect1, rect2) {
+        const x1 = rect1.left + rect1.width / 2;
+        const y1 = rect1.top + rect1.height / 2;
+        const x2 = rect2.left + rect2.width / 2;
+        const y2 = rect2.top + rect2.height / 2;
+        
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    }
+
+    applyRepulsion(currentRect, otherRect, otherElement) {
+        const repulsionForce = 5;
+        const x1 = currentRect.left + currentRect.width / 2;
+        const y1 = currentRect.top + currentRect.height / 2;
+        const x2 = otherRect.left + otherRect.width / 2;
+        const y2 = otherRect.top + otherRect.height / 2;
+        
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        
+        const newX = parseFloat(this.element.style.left) - Math.cos(angle) * repulsionForce;
+        const newY = parseFloat(this.element.style.top) - Math.sin(angle) * repulsionForce;
+        
+        const boundedX = Math.max(0, Math.min(newX, this.containerRect.width - this.element.offsetWidth));
+        const boundedY = Math.max(0, Math.min(newY, this.containerRect.height - this.element.offsetHeight));
+        
+        this.element.style.left = `${boundedX}px`;
+        this.element.style.top = `${boundedY}px`;
+        
+        const otherX = parseFloat(otherElement.style.left) + Math.cos(angle) * repulsionForce;
+        const otherY = parseFloat(otherElement.style.top) + Math.sin(angle) * repulsionForce;
+        
+        const otherBoundedX = Math.max(0, Math.min(otherX, this.containerRect.width - otherElement.offsetWidth));
+        const otherBoundedY = Math.max(0, Math.min(otherY, this.containerRect.height - otherElement.offsetHeight));
+        
+        otherElement.style.left = `${otherBoundedX}px`;
+        otherElement.style.top = `${otherBoundedY}px`;
+        
+        positions[this.element.dataset.id] = {x: boundedX, y: boundedY};
+        positions[otherElement.dataset.id] = {x: otherBoundedX, y: otherBoundedY};
     }
 
     handleDragEnd() {
