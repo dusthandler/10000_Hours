@@ -191,8 +191,7 @@ class Timer {
 
     toggleTimer() {
         this.isActive = !this.isActive;
-        this.timerElement.classList.toggle('active', this.isActive);
-        
+        this.timerElement.classList.toggle('active', this.isActive);        
         if(this.isMaster()) {
             this.timerElement.classList.toggle('pulsing', this.isActive);
         }

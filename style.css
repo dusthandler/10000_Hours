@@ -70,9 +70,10 @@ h1 {
     background: #3a3a3a;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     transition: all 0.4s ease;
+    transform: scale(1);
     touch-action: none;
     overflow: visible;
-    animation: breath 2s ease-in-out infinite;
+    /*animation: breath 2s ease-in-out infinite;*/
 }
 
 .timer::before {
@@ -90,6 +91,13 @@ h1 {
     transition: all 0.3s ease;
 }
 
+
+.timer.active {
+    animation: breath 2s ease-in-out infinite;
+    transform-origin: center;
+}
+
+
 .timer.active::before {
     opacity: 1;
     border-style: solid;
@@ -100,7 +108,7 @@ h1 {
 
 @keyframes breath {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    50% { transform: scale(1.03); }
 }
 
 @keyframes activeGlow {
