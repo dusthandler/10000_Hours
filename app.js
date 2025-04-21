@@ -519,7 +519,7 @@ window.addEventListener('load', () => {
     setTimeout(organizeGrid, 100);
 });
 
-function downloadCounters() {
+function Save() {
     const counters = Array.from(document.querySelectorAll('.timer-wrapper')).map(timer => {
         const timerInstance = timer.timer;
         return {
@@ -538,7 +538,7 @@ function downloadCounters() {
     link.click();
 }
 
-function uploadCounters(event) {
+function Load(event) {
     const file = event.target.files[0];
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -550,9 +550,29 @@ function uploadCounters(event) {
             timer.currentColor = counter.color;
             timer.element.style.left = `${counter.position.x}px`;
             timer.element.style.top = `${counter.position.y}px`;
+
+            // Update the display and progress
             timer.updateDisplay();
-            document.body.appendChild(timer.element);
+            timer.updateProgress();
+
+            // Apply the color
+            timer.timerElement.style.setProperty('--timer-color', timer.currentColor);
+            timer.progressFill.style.backgroundColor = timer.currentColor;
+            timer.progressBar.style.backgroundColor = timer.currentColor;
+
+            // Adjust the text size
+            timer.adjustTextSize();
+
+            // Append the timer to the container
+            const container = document.querySelector('.counters-container');
+            container.appendChild(timer.element);
+
+            // Save the position
+            positions[timer.element.dataset.id] = counter.position;
+
+            // Link the timer instance to the element
+            timer.element.timer = timer;
         });
     };
     reader.readAsText(file);
-}
+} 

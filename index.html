@@ -48,10 +48,16 @@
         <button onclick="sortByTime()">Ordenar por Tiempo</button>
     </div>
 
+    <div class="saveload">
+        <button onclick="Save()">Save</button>
+        <button onclick="document.getElementById('upload-input').click()">Upload Counters</button>
+<input id="upload-input" type="file" accept=".json" style="display: none;" onchange="Load(event)" />
+    </div>
+
     <script src="app.js"></script>
 
-    <button onclick="downloadCounters()">Download Counters</button>
-<input type="file" onchange="uploadCounters(event)" />
+    <button onclick="Save()">Download Counters</button>
+    <input type="file" onchange="Load(event)" />
 
 </body>
 </html>
