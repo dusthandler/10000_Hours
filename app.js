@@ -491,10 +491,6 @@ document.getElementById('color-input').addEventListener('input', (e) => {
     }
 });
 
-window.addEventListener('load', () => {
-    setTimeout(organizeGrid, 100);
-});
-
 function Save() {
     const counters = Array.from(document.querySelectorAll('.timer-wrapper')).map(timer => {
         const timerInstance = timer.timer;
