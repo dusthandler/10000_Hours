@@ -428,30 +428,6 @@ function applyColor() {
     }
 }
 
-function organizeGrid() {
-    gridMode = true;
-    const container = document.querySelector('.counters-container');
-    const timers = Array.from(container.children);
-    const containerWidth = container.offsetWidth;
-    const itemWidth = 140;
-    const margin = 20;
-    const itemsPerRow = Math.floor((containerWidth - margin) / (itemWidth + margin));
-
-    timers.forEach((timer, index) => {
-        const col = index % itemsPerRow;
-        const row = Math.floor(index / itemsPerRow);
-        
-        const x = col * (itemWidth + margin);
-        const y = row * (itemWidth + margin);
-        
-        timer.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        timer.style.left = `${x}px`;
-        timer.style.top = `${y}px`;
-        
-        positions[timer.dataset.id] = {x, y};
-    });
-}
-
 function sortByName() {
     gridMode = false;
     const container = document.querySelector('.counters-container');
