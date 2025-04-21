@@ -518,3 +518,41 @@ document.getElementById('color-input').addEventListener('input', (e) => {
 window.addEventListener('load', () => {
     setTimeout(organizeGrid, 100);
 });
+
+function downloadCounters() {
+    const counters = Array.from(document.querySelectorAll('.timer-wrapper')).map(timer => {
+        const timerInstance = timer.timer;
+        return {
+            id: timer.dataset.id,
+            name: timerInstance.nameDisplay.textContent,
+            milliseconds: timerInstance.milliseconds,
+            position: positions[timer.dataset.id],
+            color: timerInstance.currentColor,
+        };
+    });
+
+    const blob = new Blob([JSON.stringify(counters, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'counters.json';
+    link.click();
+}
+
+function uploadCounters(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const counters = JSON.parse(e.target.result);
+        counters.forEach(counter => {
+            const timer = new Timer();
+            timer.nameDisplay.textContent = counter.name;
+            timer.milliseconds = counter.milliseconds;
+            timer.currentColor = counter.color;
+            timer.element.style.left = `${counter.position.x}px`;
+            timer.element.style.top = `${counter.position.y}px`;
+            timer.updateDisplay();
+            document.body.appendChild(timer.element);
+        });
+    };
+    reader.readAsText(file);
+}
