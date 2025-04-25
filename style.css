@@ -62,8 +62,8 @@ h1 {
 }
 
 .timer {
-    width: calc(var(--base-size) * calc(1 + var(--size-factor) * var(--growth-factor)));
-    height: calc(var(--base-size) * calc(1 + var(--size-factor) * var(--growth-factor)));
+    width: var(--base-size);
+    height: var(--base-size);
     border-radius: 50%;
     cursor: pointer;
     position: relative;
@@ -73,7 +73,8 @@ h1 {
     transform: scale(1);
     touch-action: none;
     overflow: visible;
-    /*animation: breath 2s ease-in-out infinite;*/
+    max-width: 150px;
+    max-height: 150px;
 }
 
 .timer::before {
@@ -91,9 +92,160 @@ h1 {
     transition: all 0.3s ease;
 }
 
+.group-circles {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
 
+.decade-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: subtlePulse 4s ease-in-out infinite;
+}
 
+.level-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
 
+.level-dot.filled {
+    transform: translate(-50%, -50%) scale(1.4);
+}
+
+.progress-line {
+    position: absolute;
+    width: 2px;
+    height: 25%;
+    background: #fff;
+    left: 50%;
+    top: 50%;
+    transform-origin: 50% 0;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes subtlePulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.02); }
+}
+
+.timer-content {
+    transform: scale(1);
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    gap: 5px;
+    margin: 0;
+}
+
+.timer.active .timer-content {
+    transform: scale(1.08);
+}
+
+.timer-grade {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 14px;
+    padding: 4px 15px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 15px;
+    font-weight: 700;
+    color: white;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    z-index: 3;
+}
+
+.timer-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    text-align: center;
+    line-height: 1.2;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    padding: 0 10px;
+}
+
+.timer-time {
+    font-size: 1.4em;
+    font-weight: 500;
+    color: white;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    text-align: center;
+    line-height: 1.2;
+    width: 100%;
+    margin: 0;
+    padding: 0 10px;
+    font-family: 'Comfortaa', cursive;
+}
+
+.timer[data-grade="Novato"] .timer-grade {
+    color: #4a90e2;
+    text-shadow: 0 0 8px #4a90e2;
+}
+
+.timer[data-grade="Principiante"] .timer-grade {
+    color: #2ecc71;
+    text-shadow: 0 0 8px #2ecc71;
+}
+
+.timer[data-grade="Competente"] .timer-grade {
+    color: #f1c40f;
+    text-shadow: 0 0 8px #f1c40f;
+}
+
+.timer[data-grade="Experto"] .timer-grade {
+    color: #e67e22;
+    text-shadow: 0 0 8px #e67e22;
+}
+
+.timer[data-grade="Profesional"] .timer-grade {
+    color: #e74c3c;
+    text-shadow: 0 0 8px #e74c3c;
+}
+
+.timer.master .timer-grade {
+    color: #ffd700;
+    text-shadow: 0 0 8px #ffd700;
+}
 
 .timer.active::before {
     opacity: 1;
@@ -101,11 +253,6 @@ h1 {
     animation: 
         activeGlow 8s linear infinite,
         pulseGlow 2s ease infinite;
-}
-
-@keyframes breath {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.03); }
 }
 
 @keyframes activeGlow {
@@ -145,25 +292,6 @@ h1 {
         box-shadow: 0 0 45px var(--master-color);
         opacity: 1;
     }
-}
-
-.timer.master::after {
-    content: 'MASTER';
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2a2a2a;
-    padding: 2px 20px;
-    z-index: 4;
-    color: var(--master-color);
-    font-weight: 900;
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    text-shadow: 0 0 8px var(--master-color);
-    clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
-    border-radius: 3px;
 }
 
 .progress-container {
@@ -228,64 +356,6 @@ h1 {
     transform: scale(0);
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.4, 1.2);
     z-index: 0;
-}
-
-.timer-content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    gap: 5px;
-    margin: 0;
-}
-
-.timer-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: white;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000,
-        -1px 0 0 #000,
-        1px 0 0 #000,
-        0 -1px 0 #000,
-        0 1px 0 #000;
-    text-align: center;
-    line-height: 1.2;
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-    padding: 0 10px;
-}
-
-.timer-time {
-    font-size: 1.4em;
-    font-weight: 500;
-    color: white;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000,
-        -1px 0 0 #000,
-        1px 0 0 #000,
-        0 -1px 0 #000,
-        0 1px 0 #000;
-    text-align: center;
-    line-height: 1.2;
-    width: 100%;
-    margin: 0;
-    padding: 0 10px;
-    font-family: 'Comfortaa', cursive;
 }
 
 .add-counter {
@@ -474,35 +544,14 @@ h1 {
         font-size: 1em;
     }
 }
-/* Breathing effect only on the circle */
+
 .timer.active .progress-container {
     animation: breath 2s ease-in-out infinite;
     transform-origin: center;
 }
 
-/* Counter text enlarges when active */
-.timer.active .timer-time {
-    transform: scale(1.1);
-    transition: transform 0.3s ease;
-    transform-origin: center;
-}
-
-/* Contador completo se amplía al activarse */
-.timer.active {
-    transform: scale(1.1);
-    transition: transform 0.3s ease;
-    transform-origin: center;
-}
-
-/* Efecto de respiración más notorio solo en el círculo */
-.timer.active .progress-container {
-    animation: breath 1.2s ease-in-out infinite;
-    transform-origin: center;
-}
-
-/* Definición de animación más fuerte */
 @keyframes breath {
     0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
+    50% { transform: scale(1.03); }
     100% { transform: scale(1); }
 }

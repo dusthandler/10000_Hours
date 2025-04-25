@@ -19,6 +19,7 @@
         <div class="timer-wrapper">
             <div class="timer">
                 <div class="progress-container">
+                    <div class="group-circles"></div>
                     <div class="progress-fill"></div>
                     <div class="progress-bar"></div>
                     <div class="timer-content">
@@ -50,13 +51,9 @@
     <div class="saveload">
         <button onclick="Save()">Guardar</button>
         <button onclick="document.getElementById('upload-input').click()">Cargar</button>
-<input id="upload-input" type="file" accept=".json" style="display: none;" onchange="Load(event)" />
+        <input id="upload-input" type="file" accept=".json" style="display: none;" onchange="Load(event)" />
     </div>
 
     <script src="app.js"></script>
-
-    <button onclick="Save()">Download Counters</button>
-    <input type="file" onchange="Load(event)" />
-
 </body>
 </html>

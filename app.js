@@ -4,9 +4,14 @@ class Timer {
         this.timerElement = this.element.querySelector('.timer');
         this.timeDisplay = this.element.querySelector('.timer-time');
         this.nameDisplay = this.element.querySelector('.timer-name');
+        this.gradeDisplay = document.createElement('div');
+        this.gradeDisplay.className = 'timer-grade';
+        this.timerElement.appendChild(this.gradeDisplay);
+        
         this.progressFill = this.element.querySelector('.progress-fill');
         this.progressBar = this.element.querySelector('.progress-bar');
         this.progressContainer = this.element.querySelector('.progress-container');
+        this.groupCircles = this.element.querySelector('.group-circles');
         this.contextMenu = this.element.querySelector('.context-menu');
 
         this.milliseconds = 0;
@@ -22,6 +27,15 @@ class Timer {
         this.waveInterval = null;
         this.closeMenuHandler = null;
         this.element.dataset.id = Date.now() + Math.random().toString(36).substr(2, 9);
+
+        this.titleColors = {
+            'Novato': '#4a90e2',
+            'Principiante': '#2ecc71',
+            'Competente': '#f1c40f',
+            'Experto': '#e67e22',
+            'Profesional': '#e74c3c',
+            'Maestro': '#ffd700'
+        };
 
         this.setupEvents();
         this.updateDisplay();
@@ -300,27 +314,106 @@ class Timer {
         this.adjustTextSize();
     }
 
+    getTitle(level) {
+        const titles = [
+            { min: 0, max: 10, title: 'Novato' },
+            { min: 11, max: 30, title: 'Principiante' },
+            { min: 31, max: 60, title: 'Competente' },
+            { min: 61, max: 90, title: 'Experto' },
+            { min: 91, max: 99, title: 'Profesional' },
+            { min: 100, max: 100, title: 'Maestro' }
+        ];
+        return titles.find(t => level >= t.min && level <= t.max) || { title: '', color: '' };
+    }
+
+    updateGroupCircles(currentLevel) {
+        this.groupCircles.innerHTML = '';
+        const completedDecades = Math.floor(currentLevel / 10);
+        const currentDecadeLevel = currentLevel % 10;
+
+        // Aros de década (cada 10 niveles)
+        for(let decade = 1; decade <= completedDecades; decade++) {
+            const decadeCircle = document.createElement('div');
+            decadeCircle.className = `decade-circle decade-${decade}`;
+            const size = 100 + (decade * 25); // 125%, 150%, etc.
+            decadeCircle.style.cssText = `
+                width: ${size}%;
+                height: ${size}%;
+                border: 2px solid ${this.currentColor};
+                opacity: ${0.3 + (decade * 0.1)};
+            `;
+            this.groupCircles.appendChild(decadeCircle);
+        }
+
+        // Puntos de nivel actual (1-9)
+        if(currentLevel < 100) {
+            const radius = 45; // Radio del círculo de puntos
+            const angleStep = (2 * Math.PI) / 10;
+            
+            for(let i = 0; i < 10; i++) {
+                const dot = document.createElement('div');
+                const angle = angleStep * i;
+                const x = radius * Math.cos(angle);
+                const y = radius * Math.sin(angle);
+                
+                dot.className = `level-dot ${i < currentDecadeLevel ? 'filled' : ''}`;
+                dot.style.cssText = `
+                    left: ${50 + x}%;
+                    top: ${50 + y}%;
+                    background: ${this.currentColor};
+                    box-shadow: 0 0 8px ${this.currentColor};
+                `;
+                
+                this.groupCircles.appendChild(dot);
+            }
+        }
+
+        // Línea de progreso
+        const progressLine = document.createElement('div');
+        progressLine.className = 'progress-line';
+        progressLine.style.cssText = `
+            transform: rotate(${(currentDecadeLevel * 36) - 90}deg);
+            background: ${this.currentColor};
+        `;
+        this.groupCircles.appendChild(progressLine);
+    }
+
+    getCurrentLevel() {
+        const hours = this.milliseconds / 3600000;
+        return Math.min(Math.floor(Math.sqrt(hours)), 100);
+    }
+
     isMaster() {
-        return this.milliseconds >= 36000000000;
+        return this.getCurrentLevel() >= 100;
     }
 
     updateProgress() {
-        const totalHours = 36000000000;
-        const progress = Math.min(this.milliseconds / totalHours, 1);
+        const currentLevel = this.getCurrentLevel();
+        const nextLevel = currentLevel + 1;
+        const levelProgress = currentLevel < 100 ? 
+            (Math.sqrt(this.milliseconds / 3600000) - currentLevel) : 1;
+
+        const levelData = this.getTitle(currentLevel);
+        this.currentColor = this.titleColors[levelData.title] || '#4a90e2';
         
-        const sizeFactor = 1 + (progress * 1.2);
-        this.timerElement.style.setProperty('--size-factor', sizeFactor);
+        // Actualizar atributo para el estilo CSS
+        this.timerElement.dataset.grade = levelData.title;
         
-        this.progressBar.style.transform = `scale(${progress})`;
+        // Aplicar colores
+        this.timerElement.style.setProperty('--timer-color', this.currentColor);
+        this.progressFill.style.backgroundColor = this.currentColor;
+        this.progressBar.style.backgroundColor = this.currentColor;
         
-        const isMaster = this.isMaster();
-        this.timerElement.classList.toggle('master', isMaster);
+        // Escala progresiva (crecimiento del círculo)
+        const scaleFactor = 1 + (currentLevel * 0.015);
+        this.timerElement.style.transform = `scale(${scaleFactor})`;
         
-        if(isMaster) {
-            this.timerElement.style.setProperty('--timer-color', this.currentColor);
-            this.progressFill.style.backgroundColor = this.currentColor;
-            this.progressBar.style.backgroundColor = this.currentColor;
-        }
+        this.progressBar.style.transform = `scale(${levelProgress})`;
+        this.gradeDisplay.textContent = levelData.title;
+        this.updateGroupCircles(currentLevel);
+        
+        // Efecto especial para Maestro
+        this.timerElement.classList.toggle('master', currentLevel >= 100);
     }
 
     adjustTextSize() {
@@ -387,6 +480,7 @@ class Timer {
             this.timerElement.style.setProperty('--timer-color', this.currentColor);
             this.progressFill.style.backgroundColor = this.currentColor;
             this.progressBar.style.backgroundColor = this.currentColor;
+            this.updateGroupCircles(this.getCurrentLevel());
         };
         
         colorPicker.addEventListener('input', updateColor);
@@ -547,4 +641,4 @@ function Load(event) {
         });
     };
     reader.readAsText(file);
-} 
+}
