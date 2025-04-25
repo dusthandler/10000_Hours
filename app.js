@@ -328,54 +328,73 @@ class Timer {
 
     updateGroupCircles(currentLevel) {
         this.groupCircles.innerHTML = '';
-        const completedDecades = Math.floor(currentLevel / 10);
-        const currentDecadeLevel = currentLevel % 10;
+        const currentDecade = Math.floor(currentLevel / 10);
+        const currentLevelInDecade = currentLevel % 10;
+        const isMaster = currentLevel >= 100;
 
-        // Aros de década (cada 10 niveles)
-        for(let decade = 1; decade <= completedDecades; decade++) {
-            const decadeCircle = document.createElement('div');
-            decadeCircle.className = `decade-circle decade-${decade}`;
-            const size = 100 + (decade * 25); // 125%, 150%, etc.
-            decadeCircle.style.cssText = `
-                width: ${size}%;
-                height: ${size}%;
-                border: 2px solid ${this.currentColor};
-                opacity: ${0.3 + (decade * 0.1)};
-            `;
-            this.groupCircles.appendChild(decadeCircle);
-        }
-
-        // Puntos de nivel actual (1-9)
-        if(currentLevel < 100) {
-            const radius = 45; // Radio del círculo de puntos
-            const angleStep = (2 * Math.PI) / 10;
-            
-            for(let i = 0; i < 10; i++) {
-                const dot = document.createElement('div');
-                const angle = angleStep * i;
-                const x = radius * Math.cos(angle);
-                const y = radius * Math.sin(angle);
-                
-                dot.className = `level-dot ${i < currentDecadeLevel ? 'filled' : ''}`;
-                dot.style.cssText = `
-                    left: ${50 + x}%;
-                    top: ${50 + y}%;
-                    background: ${this.currentColor};
-                    box-shadow: 0 0 8px ${this.currentColor};
-                `;
-                
-                this.groupCircles.appendChild(dot);
-            }
-        }
-
-        // Línea de progreso
-        const progressLine = document.createElement('div');
-        progressLine.className = 'progress-line';
-        progressLine.style.cssText = `
-            transform: rotate(${(currentDecadeLevel * 36) - 90}deg);
-            background: ${this.currentColor};
+        // Aro de progreso de niveles (interior)
+        const levelProgress = (currentLevelInDecade / 10) * 360;
+        const levelRing = document.createElement('div');
+        levelRing.className = 'level-ring';
+        levelRing.style.cssText = `
+            transform: rotate(${levelProgress}deg);
+            border-color: ${this.currentColor};
         `;
-        this.groupCircles.appendChild(progressLine);
+        this.groupCircles.appendChild(levelRing);
+
+        // Aro de progreso de décadas (exterior)
+        const decadeProgress = (Math.min(currentLevel, 100) / 100) * 360;
+        const decadeRing = document.createElement('div');
+        decadeRing.className = 'decade-ring';
+        decadeRing.style.cssText = `
+            transform: rotate(${decadeProgress}deg);
+            border-color: ${this.currentColor};
+        `;
+        this.groupCircles.appendChild(decadeRing);
+
+        // Puntos de nivel
+        const radius = 70;
+        for(let i = 0; i < 10; i++) {
+            const angle = (i * 36) - 90;
+            const x = radius * Math.cos(angle * Math.PI / 180);
+            const y = radius * Math.sin(angle * Math.PI / 180);
+            
+            const dot = document.createElement('div');
+            dot.className = `level-dot ${i < currentLevelInDecade ? 'active' : ''}`;
+            dot.style.cssText = `
+                left: ${50 + x}%;
+                top: ${50 + y}%;
+                background: ${this.currentColor};
+            `;
+            this.groupCircles.appendChild(dot);
+        }
+
+        // Puntos de década
+        const decadeRadius = 95;
+        for(let i = 0; i < 10; i++) {
+            const angle = (i * 36) - 90;
+            const x = decadeRadius * Math.cos(angle * Math.PI / 180);
+            const y = decadeRadius * Math.sin(angle * Math.PI / 180);
+            
+            const dot = document.createElement('div');
+            dot.className = `decade-dot ${i < currentDecade ? 'active' : ''}`;
+            dot.style.cssText = `
+                left: ${50 + x}%;
+                top: ${50 + y}%;
+                background: ${this.currentColor};
+            `;
+            this.groupCircles.appendChild(dot);
+        }
+
+        // Efecto especial para Maestro
+        if(isMaster) {
+            const masterGlow = document.createElement('div');
+            masterGlow.className = 'master-glow';
+            masterGlow.style.cssText = `
+                background: radial-gradient(circle, ${this.currentColor} 0%, transparent 70%);
+            `;
+            this.groupCircles.appendChild(masterGlow);
+        }
     }
 
     getCurrentLevel() {
@@ -396,15 +415,11 @@ class Timer {
         const levelData = this.getTitle(currentLevel);
         this.currentColor = this.titleColors[levelData.title] || '#4a90e2';
         
-        // Actualizar atributo para el estilo CSS
         this.timerElement.dataset.grade = levelData.title;
-        
-        // Aplicar colores
         this.timerElement.style.setProperty('--timer-color', this.currentColor);
         this.progressFill.style.backgroundColor = this.currentColor;
         this.progressBar.style.backgroundColor = this.currentColor;
         
-        // Escala progresiva (crecimiento del círculo)
         const scaleFactor = 1 + (currentLevel * 0.015);
         this.timerElement.style.transform = `scale(${scaleFactor})`;
         
@@ -412,18 +427,20 @@ class Timer {
         this.gradeDisplay.textContent = levelData.title;
         this.updateGroupCircles(currentLevel);
         
-        // Efecto especial para Maestro
         this.timerElement.classList.toggle('master', currentLevel >= 100);
     }
 
     adjustTextSize() {
         const containerWidth = this.timerElement.offsetWidth;
         const textWidth = this.timeDisplay.scrollWidth;
+        const currentFontSize = parseFloat(this.timeDisplay.style.fontSize) || 1.4;
         
         if(textWidth > containerWidth * 0.7) {
             const newSize = Math.min(1.4, (containerWidth * 0.7) / textWidth * 1.4);
-            this.timeDisplay.style.fontSize = `${newSize}em`;
-        } else {
+            if(Math.abs(newSize - currentFontSize) > 0.01) {
+                this.timeDisplay.style.fontSize = `${newSize}em`;
+            }
+        } else if(currentFontSize < 1.4) {
             this.timeDisplay.style.fontSize = '1.4em';
         }
     }
@@ -617,26 +634,19 @@ function Load(event) {
             timer.element.style.left = `${counter.position.x}px`;
             timer.element.style.top = `${counter.position.y}px`;
 
-            // Update the display and progress
             timer.updateDisplay();
             timer.updateProgress();
 
-            // Apply the color
             timer.timerElement.style.setProperty('--timer-color', timer.currentColor);
             timer.progressFill.style.backgroundColor = timer.currentColor;
             timer.progressBar.style.backgroundColor = timer.currentColor;
 
-            // Adjust the text size
             timer.adjustTextSize();
 
-            // Append the timer to the container
             const container = document.querySelector('.counters-container');
             container.appendChild(timer.element);
 
-            // Save the position
             positions[timer.element.dataset.id] = counter.position;
-
-            // Link the timer instance to the element
             timer.element.timer = timer;
         });
     };
