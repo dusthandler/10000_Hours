@@ -1,831 +1,594 @@
-/* 
-  VARIABLES GLOBALES 
-  Controlan los aspectos más importantes del diseño
-*/
 :root {
-    --base-size: 80px;          /* Tamaño base de los temporizadores */
-    --timer-color: #4a90e2;     /* Color principal por defecto */
-    --size-factor: 1;           /* Factor de escala dinámico */
-    --growth-factor: 0.8;       /* Factor de crecimiento para animaciones */
-    --master-color: #ffd700;    /* Color especial para nivel Maestro */
-    --border-style: dashed;     /* Estilo inicial del borde (cambia a solid cuando está activo) */
-    --border-gap: 5px;          /* Espacio entre el borde y el temporizador */
+  --base-size: 80px;
+  --timer-color: #4a90e2;
+  --size-factor: 1;
+  --growth-factor: 0.8;
+  --master-color: #ffd700;
+  --border-style: dashed;
+  --border-gap: 5px;
 }
 
-/* 
-  RESET BÁSICO 
-  Asegura consistencia entre navegadores
-*/
 * {
-    box-sizing: border-box;     /* Modelo de caja más intuitivo */
+  box-sizing: border-box;
 }
 
-/* 
-  ESTILOS GENERALES DEL CUERPO 
-  Configuración base de la aplicación
-*/
 body {
-    font-family: 'Comfortaa', cursive;  /* Fuente principal */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: #2a2a2a;        /* Color de fondo oscuro */
-    min-height: 100vh;          /* Altura mínima de toda la pantalla */
-    margin: 0;
-    padding: 20px;
-    user-select: none;          /* Evita selección de texto no deseada */
-    -webkit-font-smoothing: antialiased; /* Suavizado de fuentes para WebKit */
-    color: #fff;                /* Color de texto principal */
-    overflow-x: hidden;         /* Oculta el scroll horizontal */
+  font-family: 'Comfortaa', cursive;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #2a2a2a;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  overflow-x: hidden;
 }
 
-/* 
-  ESTILOS DEL TÍTULO PRINCIPAL 
-*/
 h1 {
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Sombra para mejor legibilidad */
-    margin-bottom: 30px;        /* Espaciado inferior */
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  margin-bottom: 30px;
 }
 
-/* 
-  CONTENEDOR PRINCIPAL DE TEMPORIZADORES
-  Área donde se colocan y organizan todos los timers
-*/
 .counters-container {
-    position: relative;         /* Permite posicionamiento absoluto de los hijos */
-    width: 100%;
-    min-height: 100vh;          /* Ocupa al menos toda la altura de la pantalla */
-    margin: 20px auto;
-    padding-bottom: 100px;      /* Espacio para el botón flotante */
-    overflow: visible;          /* Permite que los elementos sobresalgan */
-    touch-action: none;         /* Mejora el comportamiento táctil */
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  margin: 20px auto;
+  padding-bottom: 100px;
+  overflow: visible;
+  touch-action: none;
 }
 
-/* 
-  CONTENEDOR DE TEMPORIZADOR INDIVIDUAL
-*/
 .timer-wrapper {
-    position: absolute;         /* Posicionamiento libre dentro del contenedor */
-    cursor: grab;               /* Cursor que indica que se puede arrastrar */
-    transition: all 0.3s ease;  /* Transición suave para movimientos */
-    transform: translate(0, 0);
-    will-change: transform;     /* Optimización para animaciones */
-    z-index: 1;                /* Nivel de apilamiento base */
-    user-select: none;          /* Evita selección durante arrastre */
-    margin: 15px;              /* Margen entre timers */
+  position: absolute;
+  cursor: grab;
+  transition: all 0.3s ease;
+  transform: translate(0, 0);
+  will-change: transform;
+  z-index: 1;
+  user-select: none;
+  margin: 15px;
 }
 
-/* 
-  ESTADO DE ARRASTRE DEL TEMPORIZADOR 
-*/
 .timer-wrapper.dragging {
-    transition: none;          /* Sin transición durante arrastre */
-    z-index: 1000;             /* Por encima de todo */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2); /* Sombra destacada */
-    cursor: grabbing;          /* Cambia el cursor durante arrastre */
-    pointer-events: none;      /* Mejora el comportamiento de arrastre */
+  transition: none;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  cursor: grabbing;
+  pointer-events: none;
 }
 
-/* 
-  TEMPORIZADOR PRINCIPAL 
-  Estilo circular con todos sus elementos internos
-*/
 .timer {
-    width: var(--base-size);   /* Tamaño controlado por variable */
-    height: var(--base-size);
-    border-radius: 50%;        /* Forma circular perfecta */
-    cursor: pointer;           /* Indica que es interactivo */
-    position: relative;
-    background: #3a3a3a;       /* Color de fondo */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Sombra para profundidad */
-    transition: all 0.4s ease; /* Transiciones suaves */
-    transform: scale(1);       /* Escala inicial */
-    touch-action: none;        /* Mejor control táctil */
-    overflow: visible;         /* Permite efectos que sobresalgan */
-    max-width: 150px;          /* Límite máximo de tamaño */
-    max-height: 150px;
-    display: flex;
-    justify-content: center;
-    align-items: center;       /* Centrado del contenido */
+  width: var(--base-size);
+  height: var(--base-size);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  background: #3a3a3a;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: all 0.4s ease;
+  transform: scale(1);
+  touch-action: none;
+  overflow: visible;
+  max-width: 150px;
+  max-height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* 
-  BORDE EXTERNO DEL TEMPORIZADOR 
-  Anillo decorativo que rodea al timer
-*/
 .timer::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: calc(100% + 100px);  /* Más grande que el timer */
-    height: calc(100% + 100px);
-    transform: translate(-50%, -50%);
-    border: 3px var(--border-style) var(--timer-color);
-    border-radius: 50%;
-    opacity: 0.3;               /* Semi-transparente por defecto */
-    z-index: 0;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); /* Animación personalizada */
-    box-shadow: 0 0 0 var(--border-gap) #2a2a2a; /* Espaciado del borde */
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 100px);
+  height: calc(100% + 100px);
+  transform: translate(-50%, -50%);
+  border: 3px var(--border-style) var(--timer-color);
+  border-radius: 50%;
+  opacity: 0.3;
+  z-index: 0;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 0 var(--border-gap) #2a2a2a;
 }
 
-/* 
-  GRUPO DE CÍRCULOS CONCÉNTRICOS 
-  Muestra el progreso con elementos visuales
-*/
 .group-circles {
-    position: absolute;
-    top: 0%;
-    left: 0%;
-    width: 100%;
-    height: 100%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;     /* No intercepta eventos de ratón */
-    z-index: 1;
-    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* Animación elástica */
-    transform-origin: center; /* Rotación desde el centro */
+  position: absolute;
+  top: 0%;
+  left: 0%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
 }
 
-/* 
-  ANILLO DE NIVEL (interior)
-  Muestra progreso dentro de cada década (0-9, 10-19, etc.)
-*/
-.level-ring {
-    position: absolute;
-    width: 150%;
-    height: 150%;
-    border-radius: 50%;
-    border: 3px solid;
-    border-right-color: transparent !important; /* Solo muestra parte del anillo */
-    border-top-color: transparent !important;
-    clip: rect(0, 200px, 200px, 100px);       /* Técnica para círculos de progreso */
-    transform-origin: center;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-90deg); /* Posición inicial */
-    z-index: 1;
-}
-
-/* 
-  ANILLO DE DÉCADA (exterior)
-  Muestra progreso general (0-100)
-*/
-.decade-ring {
-    position: absolute;
-    width: 200%;
-    height: 200%;
-    border-radius: 50%;
-    border: 3px solid;
-    border-right-color: transparent !important;
-    border-top-color: transparent !important;
-    clip: rect(0, 200px, 200px, 100px);
-    transform-origin: center;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-90deg);
-    z-index: 0;
-}
-
-/* 
-  PUNTOS DE NIVEL (interiores)
-  Pequeños círculos que indican progreso dentro de una década
-*/
 .level-dot {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    opacity: 0.3;             /* Inactivos son semi-transparentes */
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-    transform-origin: center;
-    background: var(--timer-color);
-    z-index: 2;
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0.3;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  transform-origin: center;
+  background: var(--timer-color);
+  z-index: 2;
+  transform: translate(-50%, -50%);
 }
 
-/* 
-  PUNTOS DE DÉCADA (exteriores)
-  Círculos más grandes que indican décadas completadas
-*/
-.decade-dot {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    opacity: 0.3;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-    transform-origin: center;
-    background: var(--timer-color);
-    z-index: 2;
-}
-
-/* 
-  ESTADO ACTIVO DE LOS PUNTOS 
-  Cuando están completados (parte del progreso)
-*/
 .level-dot.active {
-    opacity: 1;               /* Completados son totalmente visibles */
-    transform: translate(-50%, -50%) scale(1.4); /* Efecto de aumento */
-    box-shadow: 0 0 10px currentColor; /* Resplandor */
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.4);
+  box-shadow: 0 0 10px currentColor;
+}
+
+.level-dot.active-current {
+  animation: tickerPulse 1s infinite;
+  box-shadow: 0 0 15px currentColor;
+  opacity: 1;
+  z-index: 10;
+  transform: translate(-50%, -50%) scale(1.4);
+}
+
+.decade-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  opacity: 0.3;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  transform-origin: center;
+  background: var(--timer-color);
+  z-index: 2;
+  transform: translate(-50%, -50%);
 }
 
 .decade-dot.active {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.6); /* Más grandes que los de nivel */
-    box-shadow: 0 0 15px currentColor; /* Resplandor más intenso */
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.6);
+  box-shadow: 0 0 15px currentColor;
 }
 
-/* 
-  LÍNEA DE PROGRESO 
-  Indicador dinámico que apunta al progreso actual
-*/
+.level-arc {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid;
+  border-radius: 50%;
+  border-color: inherit;
+  clip-path: inset(0 0 0 50%);
+  transform-origin: center;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  animation: arcCreation 0.5s ease-out forwards;
+}
+
 .progress-line {
-    position: absolute;
-    width: 2px;
-    height: 20%;
-    left: 50%;
-    top: 0;
-    transform-origin: 50% 100%; /* Rota desde la base */
-    animation: progressGlow 2s infinite; /* Animación de resplandor */
-    z-index: 3;
+  position: absolute;
+  background: var(--timer-color);
+  width: 2px;
+  height: 50%;
+  transform-origin: bottom center;
+  left: 50%;
+  bottom: 50%;
+  animation: lineEmission 0.5s ease-out forwards;
+  z-index: 3;
 }
 
-/* 
-  EFECTO ESPECIAL PARA MAESTROS 
-  Resplandor dorado cuando se alcanza el nivel máximo
-*/
 .master-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 150%;
-    height: 150%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    opacity: 0.3;
-    z-index: 0;
-    animation: pulseGlow 2s ease infinite; /* Animación pulsante */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  opacity: 0.3;
+  z-index: 0;
+  animation: pulseGlow 2s ease infinite;
 }
 
-/* 
-  CONTENIDO DEL TEMPORIZADOR 
-  Área central con nombre y tiempo
-*/
 .timer-content {
-    transform: scale(1);
-    transition: transform 0.3s ease;
-    position: relative;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    gap: 5px;
-    margin: 0;
-    backface-visibility: hidden; /* Optimización para animaciones */
-    transform: translateZ(0);    /* Acelera hardware */
-    will-change: transform;     /* Optimización para animaciones */
+  transform: scale(1);
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  gap: 5px;
+  margin: 0;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
-/* 
-  EFECTO AL ACTIVAR EL TEMPORIZADOR 
-  El contenido crece ligeramente
-*/
 .timer.active .timer-content {
-    transform: scale(1.08);
+  transform: scale(1.08);
 }
 
-/* 
-  INDICADOR DE GRADO/NIVEL 
-  Muestra el título actual (Novato, Principiante, etc.)
-*/
 .timer-grade {
-    position: absolute;
-    top: -35px;                /* Posicionado arriba del timer */
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;       /* Evita saltos de línea */
-    font-size: 14px;
-    padding: 4px 15px;
-    background: rgba(0,0,0,0.7); /* Fondo semi-transparente */
-    border-radius: 15px;       /* Bordes redondeados */
-    font-weight: 700;
-    color: white;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;        /* Sombra para legibilidad */
-    z-index: 4;
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 14px;
+  padding: 4px 15px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 15px;
+  font-weight: 700;
+  color: white;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  z-index: 4;
 }
 
-/* 
-  NOMBRE DEL TEMPORIZADOR 
-*/
 .timer-name {
-    font-size: 0.8em;
-    font-weight: 600;
-    color: white;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
-    text-align: center;
-    line-height: 1.2;
-    width: 90%;
-    white-space: nowrap;       /* Evita saltos de línea */
-    overflow: hidden;          /* Oculta texto que sobresale */
-    text-overflow: ellipsis;   /* Muestra puntos suspensivos si es muy largo */
-    margin: 0;
-    padding: 0 10px;
-    transition: font-size 0.3s ease;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: white;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  text-align: center;
+  line-height: 1.2;
+  width: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  padding: 0 10px;
+  transition: font-size 0.3s ease;
 }
 
-/* 
-  TIEMPO DEL TEMPORIZADOR 
-*/
 .timer-time {
-    font-size: 1.4em;
-    font-weight: 500;
-    color: white;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
-    text-align: center;
-    line-height: 1.2;
-    width: 100%;
-    margin: 0;
-    padding: 0 10px;
-    font-family: 'Comfortaa', cursive;
-    transition: font-size 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  font-size: 1.4em;
+  font-weight: 500;
+  color: white;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+  margin: 0;
+  padding: 0 10px;
+  font-family: 'Comfortaa', cursive;
+  transition: font-size 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-/* 
-  ESTILOS ESPECÍFICOS POR GRADO 
-  Colores diferentes para cada nivel de progreso
-*/
 .timer[data-grade="Novato"] .timer-grade {
-    color: #4a90e2;
-    text-shadow: 0 0 8px #4a90e2;
+  color: #4a90e2;
+  text-shadow: 0 0 8px #4a90e2;
 }
 
 .timer[data-grade="Principiante"] .timer-grade {
-    color: #2ecc71;
-    text-shadow: 0 0 8px #2ecc71;
+  color: #2ecc71;
+  text-shadow: 0 0 8px #2ecc71;
 }
 
 .timer[data-grade="Competente"] .timer-grade {
-    color: #f1c40f;
-    text-shadow: 0 0 8px #f1c40f;
+  color: #f1c40f;
+  text-shadow: 0 0 8px #f1c40f;
 }
 
 .timer[data-grade="Experto"] .timer-grade {
-    color: #e67e22;
-    text-shadow: 0 0 8px #e67e22;
+  color: #e67e22;
+  text-shadow: 0 0 8px #e67e22;
 }
 
 .timer[data-grade="Profesional"] .timer-grade {
-    color: #e74c3c;
-    text-shadow: 0 0 8px #e74c3c;
+  color: #e74c3c;
+  text-shadow: 0 0 8px #e74c3c;
 }
 
-/* 
-  ESTILOS ESPECIALES PARA MAESTROS 
-  (Nivel máximo alcanzado)
-*/
 .timer.master .timer-grade {
-    color: #ffd700;
-    text-shadow: 0 0 8px #ffd700;
+  color: #ffd700;
+  text-shadow: 0 0 8px #ffd700;
 }
 
-/* 
-  ESTILOS DEL TEMPORIZADOR ACTIVO 
-  Cambios visuales cuando el timer está en marcha
-*/
 .timer.active::before {
-    opacity: 1;
-    border-style: solid;
-    animation: 
-        activeGlow 8s linear infinite,   /* Rotación continua */
-        pulseGlow 2s ease infinite;      /* Efecto de pulso */
+  opacity: 1;
+  border-style: solid;
+  animation: activeGlow 8s linear infinite, pulseGlow 2s ease infinite;
 }
 
-/* 
-  ANIMACIÓN DE ROTACIÓN PARA BORDE ACTIVO 
-*/
 @keyframes activeGlow {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* 
-  ANIMACIÓN DE PULSO PARA BORDE ACTIVO 
-*/
 @keyframes pulseGlow {
-    0%, 100% { 
-        box-shadow: 0 0 10px var(--timer-color);
-        filter: brightness(1.2);
-    }
-    50% { 
-        box-shadow: 0 0 25px var(--timer-color);
-        filter: brightness(1.5);
-    }
+  0%, 100% { box-shadow: 0 0 10px var(--timer-color); filter: brightness(1.2); }
+  50% { box-shadow: 0 0 25px var(--timer-color); filter: brightness(1.5); }
 }
 
-/* 
-  ESTILOS ESPECIALES PARA MAESTROS ACTIVOS 
-*/
 .timer.master::before {
-    border-color: var(--master-color);
-    box-shadow: 0 0 25px var(--master-color);
-    border-style: solid;
+  border-color: var(--master-color);
+  box-shadow: 0 0 25px var(--master-color);
+  border-style: solid;
 }
 
 .timer.master.active::before {
-    animation: 
-        activeGlow 8s linear infinite,
-        masterPulse 1.5s ease infinite;
+  animation: activeGlow 8s linear infinite, masterPulse 1.5s ease infinite;
 }
 
-/* 
-  ANIMACIÓN DE PULSO PARA MAESTROS 
-*/
 @keyframes masterPulse {
-    0%, 100% { 
-        box-shadow: 0 0 25px var(--master-color);
-        opacity: 0.8;
-    }
-    50% { 
-        box-shadow: 0 0 45px var(--master-color);
-        opacity: 1;
-    }
+  0%, 100% { box-shadow: 0 0 25px var(--master-color); opacity: 0.8; }
+  50% { box-shadow: 0 0 45px var(--master-color); opacity: 1; }
 }
 
-/* 
-  CONTENEDOR DE PROGRESO 
-  Área que contiene los elementos de la barra de progreso
-*/
 .progress-container {
-    position: relative;
-    width: 80%;
-    height: 80%;
-    border-radius: 50%;
-    overflow: visible;
-    z-index: 2;
+  position: relative;
+  width: 90%;
+  height: 90%;
+  border-radius: 50%;
+  overflow: visible;
+  z-index: 2;
 }
 
-/* 
-  ONDAS DE PROPAGACIÓN 
-  Efecto visual que se activa con el timer
-*/
 .wave-ring {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: calc(100% + 100px);
-    height: calc(100% + 100px);
-    border: 2px solid;
-    border-radius: 50%;
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0);
-    pointer-events: none;
-    mix-blend-mode: screen;    /* Mezcla especial con el fondo */
-    filter: brightness(1.8);   /* Aumenta brillo */
-    z-index: -1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 100px);
+  height: calc(100% + 100px);
+  border: 2px solid;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  filter: brightness(1.8);
+  z-index: -1;
 }
 
-/* 
-  ANIMACIÓN DE ONDAS 
-*/
 @keyframes rippleWave {
-    0% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0.8;
-        border-width: 8px;
-    }
-    50% {
-        border-width: 4px;
-        filter: brightness(1.5);
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1.6);
-        opacity: 0;
-        border-width: 1px;
-        filter: brightness(1.2);
-    }
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0.8; border-width: 8px; }
+  50% { border-width: 4px; filter: brightness(1.5); }
+  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; border-width: 1px; filter: brightness(1.2); }
 }
 
-/* 
-  RELLENO DE PROGRESO 
-  Fondo semi-transparente del círculo de progreso
-*/
 .progress-fill {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: var(--timer-color);
-    opacity: 0.2;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    z-index: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: var(--timer-color);
+  opacity: 0.2;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+  z-index: 0;
 }
 
-/* 
-  BARRA DE PROGRESO 
-  Círculo que crece según el progreso
-*/
 .progress-bar {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: var(--timer-color);
-    border-radius: 50%;
-    transform: scale(0);       /* Inicia vacío */
-    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.4, 1.2); /* Animación elástica */
-    z-index: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: var(--timer-color);
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.4, 1.2);
+  z-index: 0;
 }
 
-/* 
-  BOTÓN PARA AÑADIR TEMPORIZADORES 
-*/
 .add-counter {
-    width: var(--base-size);
-    height: var(--base-size);
-    border: 2px dashed #666;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: #3a3a3a;
-    z-index: 100;              /* Por encima de los timers */
+  width: var(--base-size);
+  height: var(--base-size);
+  border: 2px dashed #666;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #3a3a3a;
+  z-index: 100;
 }
 
-/* 
-  EFECTO HOVER PARA EL BOTÓN 
-*/
 .add-counter:hover {
-    border-color: var(--timer-color);
-    transform: scale(1.1);     /* Ligero aumento al pasar el ratón */
+  border-color: var(--timer-color);
+  transform: scale(1.1);
 }
 
 .add-counter i {
-    font-size: 32px;
-    color: var(--timer-color);
+  font-size: 32px;
+  color: var(--timer-color);
 }
 
-/* 
-  MENÚ CONTEXTUAL 
-  Aparece con click largo en un timer
-*/
 .context-menu {
-    position: absolute;
-    background: #3a3a3a;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    border-radius: 8px;
-    padding: 8px;
-    z-index: 1002;             /* Por encima de casi todo */
-    display: none;             /* Oculto por defecto */
-    flex-direction: column;
-    min-width: 120px;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 10px;
-    pointer-events: auto;      /* Permite interacción cuando es visible */
-    font-family: 'Comfortaa', cursive;
+  position: absolute;
+  background: #3a3a3a;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  border-radius: 8px;
+  padding: 8px;
+  z-index: 1002;
+  display: none;
+  flex-direction: column;
+  min-width: 120px;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 10px;
+  pointer-events: auto;
+  font-family: 'Comfortaa', cursive;
 }
 
-/* 
-  ELEMENTOS DEL MENÚ 
-*/
 .menu-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #eee;
-    transition: all 0.2s;
-    user-select: none;
-    -webkit-user-select: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #eee;
+  transition: all 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-/* 
-  EFECTO HOVER PARA ELEMENTOS DEL MENÚ 
-*/
 .menu-item:hover {
-    background: #4a4a4a;
-    transform: translateX(2px); /* Ligero desplazamiento */
+  background: #4a4a4a;
+  transform: translateX(2px);
 }
 
-/* 
-  SELECTOR DE COLOR 
-  Se muestra al elegir "Cambiar color" en el menú
-*/
 .color-picker {
-    display: none;             /* Oculto por defecto */
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #2a2a2a;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    border: 2px solid var(--timer-color);
-    z-index: 1003;             /* Por encima del menú contextual */
-    font-family: 'Comfortaa', cursive;
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #2a2a2a;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 2px solid var(--timer-color);
+  z-index: 1003;
+  font-family: 'Comfortaa', cursive;
 }
 
 .color-picker button {
-    margin-top: 10px;
-    padding: 8px 16px;
-    background: var(--timer-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: var(--timer-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
 }
 
 .color-picker button:hover {
-    filter: brightness(1.1);
-    transform: translateY(-2px);
+  filter: brightness(1.1);
+  transform: translateY(-2px);
 }
 
-/* 
-  CONTROLES DE ORDENACIÓN 
-  Botones en la esquina superior derecha
-*/
 .controls {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-    z-index: 1000;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    max-width: 60%;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 60%;
 }
 
 .controls button {
-    padding: 8px 16px;
-    background: #4a90e2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Comfortaa', cursive;
-    white-space: nowrap;
+  padding: 8px 16px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Comfortaa', cursive;
+  white-space: nowrap;
 }
 
 .controls button:hover {
-    background: #357abd;
-    transform: translateY(-2px);
+  background: #357abd;
+  transform: translateY(-2px);
 }
 
-/* 
-  CONTROLES DE GUARDADO/CARGA 
-  Botones en la esquina superior izquierda
-*/
 .saveload {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    display: flex;
-    gap: 10px;
-    z-index: 1000;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    max-width: 60%;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 60%;
 }
 
 .saveload button {
-    padding: 8px 16px;
-    background: #4a90e2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Comfortaa', cursive;
-    white-space: nowrap;
+  padding: 8px 16px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Comfortaa', cursive;
+  white-space: nowrap;
 }
 
 .saveload button:hover {
-    background: #357abd;
-    transform: translateY(-2px);
+  background: #357abd;
+  transform: translateY(-2px);
 }
 
-/* 
-  MEDIA QUERIES PARA DISPOSITIVOS MÓVILES 
-  Ajustes para pantallas pequeñas
-*/
-
-/* Tabletas y móviles grandes */
-@media (max-width: 768px) {
-    .controls {
-        position: static;     /* Cambia a flujo normal */
-        max-width: 100%;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-    
-    .timer-name {
-        font-size: 14px;      /* Texto más pequeño */
-    }
-    
-    .timer-time {
-        font-size: 1.2em;     /* Tiempo más compacto */
-    }
+/* Nuevas animaciones específicas */
+@keyframes tickerPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1.4); }
+  50% { transform: translate(-50%, -50%) scale(1.8); }
 }
 
-/* Móviles pequeños */
-@media (max-width: 480px) {
-    :root {
-        --base-size: 70px;    /* Temporizadores más pequeños */
-    }
-    
-    .controls button {
-        padding: 6px 12px;    /* Botones más compactos */
-        font-size: 12px;
-    }
-    
-    .timer-name {
-        font-size: 12px;      /* Texto más pequeño */
-    }
-    
-    .timer-time {
-        font-size: 1em;       /* Tiempo más compacto */
-    }
+@keyframes arcCreation {
+  from { transform: rotate(var(--start-angle)) scale(0.5); opacity: 0; }
+  to { transform: rotate(var(--start-angle)) scale(1); opacity: 1; }
 }
 
-/* 
-  ANIMACIÓN DE RESPIRACIÓN PARA CONTENEDOR DE PROGRESO 
-  Efecto sutil cuando el timer está activo
-*/
+@keyframes lineEmission {
+  from { transform: rotate(var(--line-angle)) scale(0.1); height: 10%; opacity: 1; }
+  to { transform: rotate(var(--line-angle)) scale(1); height: 50%; opacity: 0; }
+}
+
 .timer.active .progress-container {
-    animation: breath 3s ease-in-out infinite;
-    transform-origin: center;
+  animation: breath 3s ease-in-out infinite;
+  transform-origin: center;
 }
 
 @keyframes breath {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-    100% { transform: scale(1); }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
 }
 
-/* 
-  ANIMACIONES DE PUNTOS AL ACTIVAR/DESACTIVAR 
-  Efectos de rotación y escala para los puntos de progreso
-*/
-.timer.active .level-dot {
-    transform: translate(-50%, -50%) scale(1.4) rotate(0deg);
+@media (max-width: 768px) {
+  .controls {
+      position: static;
+      max-width: 100%;
+      justify-content: center;
+      margin-bottom: 20px;
+  }
+  
+  .timer-name {
+      font-size: 14px;
+  }
+  
+  .timer-time {
+      font-size: 1.2em;
+  }
 }
 
-.timer:not(.active) .level-dot {
-    transform: translate(-50%, -50%) scale(0.8) rotate(-180deg);
-}
-
-.timer.active .decade-dot {
-    transform: translate(-50%, -50%) scale(1.6) rotate(0deg);
-}
-
-.timer:not(.active) .decade-dot {
-    transform: translate(-50%, -50%) scale(0.8) rotate(180deg);
-}
-
-/* 
-  ANIMACIONES DE ENTRADA/SALIDA PARA ELEMENTOS 
-  Usadas durante transiciones de estado
-*/
-@keyframes elementsEntrance {
-    0% {
-        transform: scale(0.8) rotate(180deg);
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-    }
-}
-
-@keyframes elementsExit {
-    0% {
-        transform: scale(1) rotate(0deg);
-    }
-    100% {
-        transform: scale(0.8) rotate(180deg);
-    }
+@media (max-width: 480px) {
+  :root {
+      --base-size: 70px;
+  }
+  
+  .controls button {
+      padding: 6px 12px;
+      font-size: 12px;
+  }
+  
+  .timer-name {
+      font-size: 12px;
+  }
+  
+  .timer-time {
+      font-size: 1em;
+  }
 }
