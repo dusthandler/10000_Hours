@@ -475,26 +475,6 @@ class Timer {
         const dotSize = 8;
         const radius = 75;
         const decadeRadius = 105;
-
-        // 1. ANILLO DE NIVEL (interior)
-        const levelProgress = (currentLevelInDecade / 10) * 360;
-        const levelRing = document.createElement('div');
-        levelRing.className = 'level-ring';
-        levelRing.style.cssText = `
-            transform: rotate(${levelProgress}deg);
-            border-color: ${this.currentColor};
-        `;
-        this.groupCircles.appendChild(levelRing);
-    
-        // 2. ANILLO DE DÉCADA (exterior)
-        const decadeProgress = (Math.min(currentLevel, 100) / 100) * 360;
-        const decadeRing = document.createElement('div');
-        decadeRing.className = 'decade-ring';
-        decadeRing.style.cssText = `
-            transform: rotate(${decadeProgress}deg);
-            border-color: ${this.currentColor};
-        `;
-        this.groupCircles.appendChild(decadeRing);
     
         // 3. PUNTOS DE NIVEL (interiores)
         for(let i = 0; i < 10; i++) {
@@ -529,20 +509,6 @@ class Timer {
             `;
             this.groupCircles.appendChild(dot);
         }
-
-        // 5. LÍNEA DE PROGRESO
-        const progressLine = document.createElement('div');
-        progressLine.className = 'progress-line';
-        const currentAngle = (currentLevelInDecade * 36) - 90;
-        progressLine.style.cssText = `
-            transform: rotate(${currentAngle}deg);
-            background: linear-gradient(to right, 
-                transparent 0%, 
-                ${this.currentColor} 50%, 
-                transparent 100%);
-            box-shadow: 0 0 10px ${this.currentColor};
-        `;
-        this.groupCircles.appendChild(progressLine);
 
         // 6. EFECTO ESPECIAL PARA MAESTROS
         if(isMaster) {
