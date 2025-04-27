@@ -530,7 +530,6 @@ h1 {
   transform: translateY(-2px);
 }
 
-/* Nuevas animaciones específicas */
 @keyframes tickerPulse {
   0%, 100% { transform: translate(-50%, -50%) scale(1.4); }
   50% { transform: translate(-50%, -50%) scale(1.8); }

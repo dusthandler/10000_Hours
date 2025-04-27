@@ -22,14 +22,11 @@ class Timer {
         this.currentColor = '#4a90e2';
         this.startTime = 0;
         this.isDragging = false;
-        this.offsetX = 0;
-        this.offsetY = 0;
         this.preventClick = false;
         this.waveInterval = null;
         this.closeMenuHandler = null;
         this.previousLevel = 0;
         this.activeDot = null;
-        this.currentArc = null;
 
         this.element.dataset.id = Date.now() + Math.random().toString(36).substr(2, 9);
 
@@ -245,24 +242,20 @@ class Timer {
         if(this.isActive) {
             this.groupCircles.style.transform = 'scale(1) rotate(0deg)';
             this.timerElement.style.setProperty('--border-gap', '15px');
-        } else {
-            this.groupCircles.style.transform = 'scale(0.8) rotate(-360deg)';
-            this.timerElement.style.setProperty('--border-gap', '5px');
-        }
-    
-        if(this.isMaster()) {
-            this.timerElement.classList.toggle('pulsing', this.isActive);
-        }
-    
-        if(this.isActive) {
             this.timerElement.style.setProperty('--border-style', 'solid');
             this.startTime = Date.now() - this.milliseconds;
             this.start();
             this.startWave();
         } else {
+            this.groupCircles.style.transform = 'scale(0.8) rotate(-360deg)';
+            this.timerElement.style.setProperty('--border-gap', '5px');
             this.timerElement.style.setProperty('--border-style', 'dashed');
             this.stop();
             this.stopWave();
+        }
+        
+        if(this.isMaster()) {
+            this.timerElement.classList.toggle('pulsing', this.isActive);
         }
     }
 
@@ -302,9 +295,7 @@ class Timer {
 
     stopWave() {
         clearInterval(this.waveInterval);
-        document.querySelectorAll('.wave-ring').forEach(wave => {
-            if(wave.parentNode) wave.remove();
-        });
+        document.querySelectorAll('.wave-ring').forEach(wave => wave.remove());
     }
 
     updateTime() {
@@ -349,7 +340,6 @@ class Timer {
         const currentDecade = Math.floor(currentLevel / 10);
         const currentLevelInDecade = currentLevel % 10;
         const isMaster = currentLevel >= 100;
-        const dotSize = 8;
         const radius = 85;
         const decadeRadius = 105;
     
@@ -407,10 +397,8 @@ class Timer {
     }
 
     createLevelArcs(currentLevelInDecade) {
-        // Eliminar arcos anteriores
         document.querySelectorAll('.level-arc').forEach(arc => arc.remove());
 
-        // Crear nuevos arcos
         for(let i = 0; i < currentLevelInDecade; i++) {
             const startAngle = (i * 36) - 90;
             const arc = document.createElement('div');
@@ -463,7 +451,6 @@ class Timer {
     }
 
     animateLevelTransition(newLevel) {
-        // Animación de línea que se aleja
         if(this.activeDot) {
             const line = document.createElement('div');
             line.className = 'progress-line';
@@ -479,7 +466,6 @@ class Timer {
             setTimeout(() => line.remove(), 500);
         }
         
-        // Eliminar clase de punto activo anterior
         if(this.activeDot) {
             this.activeDot.classList.remove('active-current');
         }
@@ -586,18 +572,14 @@ class Timer {
 
 let currentColorTimer = null;
 let positions = {};
-let gridMode = true;
 
 function applyColor() {
     if(currentColorTimer) {
-        currentColorTimer.progressFill.style.backgroundColor = currentColorTimer.currentColor;
-        currentColorTimer.progressBar.style.backgroundColor = currentColorTimer.currentColor;
         document.querySelector('.color-picker').style.display = 'none';
     }
 }
 
 function sortByName() {
-    gridMode = false;
     const container = document.querySelector('.counters-container');
     const timers = Array.from(container.children).sort((a, b) => {
         return a.querySelector('.timer-name').textContent.localeCompare(b.querySelector('.timer-name').textContent);
@@ -616,7 +598,6 @@ function sortByName() {
 }
 
 function sortByTime() {
-    gridMode = false;
     const container = document.querySelector('.counters-container');
     const timers = Array.from(container.children).sort((a, b) => {
         return b.timer.milliseconds - a.timer.milliseconds;
