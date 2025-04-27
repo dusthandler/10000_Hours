@@ -94,8 +94,8 @@
       - Posición fija en esquina superior derecha
     -->
     <div class="controls">
-        <button onclick="sortByName()">Ordenar por Nombre</button>
-        <button onclick="sortByTime()">Ordenar por Tiempo</button>
+      <button class="control-btn sort-name" onclick="sortByName()">Nombre</button>
+      <button class="control-btn sort-time" onclick="sortByTime()">Tiempo</button>
     </div>
 
     <!-- 
@@ -104,10 +104,9 @@
       - Posición fija en esquina superior izquierda
     -->
     <div class="saveload">
-        <button onclick="Save()">Guardar</button>
-        <button onclick="document.getElementById('upload-input').click()">Cargar</button>
-        <!-- Input oculto para seleccionar archivo -->
-        <input id="upload-input" type="file" accept=".json" style="display: none;" onchange="Load(event)" />
+      <button class="control-btn save-btn" onclick="Save()">Guardar</button>
+      <button class="control-btn load-btn" onclick="document.getElementById('upload-input').click()">Cargar</button>
+      <input id="upload-input" type="file" accept=".json" style="display: none;" onchange="Load(event)" />
     </div>
 
     <!-- 

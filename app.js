@@ -615,13 +615,21 @@ function sortByTime() {
     });
 }
 
-document.querySelector('.add-counter').addEventListener('click', () => {
+document.querySelector('.add-counter').addEventListener('click', function(e)  {
     const newTimer = new Timer();
     const container = document.querySelector('.counters-container');
     
     const startX = (container.offsetWidth - newTimer.element.offsetWidth) / 2;
     const startY = (container.offsetHeight - newTimer.element.offsetHeight) / 2;
     
+    const btn = e.currentTarget;
+    btn.classList.add('clicked');
+  
+  // Eliminamos la clase cuando termine la animación
+  setTimeout(() => {
+    btn.classList.remove('clicked');
+  }, 600);
+
     newTimer.element.style.left = `${startX}px`;
     newTimer.element.style.top = `${startY}px`;
     
