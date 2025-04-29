@@ -126,16 +126,25 @@ h1 {
 
 .level-dot.active {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1.4);
-  box-shadow: 0 0 10px currentColor;
+  transform: translate(-50%, -50%) scale(1.3);
+  box-shadow: 0 0 8px currentColor;
 }
 
 .level-dot.active-current {
-  animation: tickerPulse 1s infinite;
-  box-shadow: 0 0 15px currentColor;
+  animation: none;
   opacity: 1;
+  transform: translate(-50%, -50%) scale(1.3);
+  box-shadow: 0 0 12px currentColor;
   z-index: 10;
-  transform: translate(-50%, -50%) scale(1.4);
+}
+
+.timer.active .level-dot.active-current {
+  animation: tickerPulse 2s infinite;
+}
+
+@keyframes tickerPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1.3); }
+  50% { transform: translate(-50%, -50%) scale(1.6); }
 }
 
 .decade-dot {
@@ -153,8 +162,8 @@ h1 {
 
 .decade-dot.active {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1.6);
-  box-shadow: 0 0 15px currentColor;
+  transform: translate(-50%, -50%) scale(1.5);
+  box-shadow: 0 0 12px currentColor;
 }
 
 .level-arc {
@@ -283,6 +292,94 @@ h1 {
   transition: font-size 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
+/* Estilos para la barra de progreso de nivel */
+.level-progress {
+  width: 100%;
+  margin-top: 8px;
+  opacity: 0.9;
+  transition: all 0.3s ease;
+}
+
+.timer.active .level-progress {
+  transform: translateY(2px);
+  opacity: 1;
+}
+
+.level-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7em;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.level-progress .progress-container {
+  flex-grow: 1;
+  position: relative;
+  height: 12px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.progress-bar {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.level-progress .progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0%;
+  background: currentColor;
+  border-radius: 6px;
+  transition: width 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+  box-shadow: 0 0 6px currentColor;
+}
+
+.level-progress .progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.3) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: progressGlow 2.5s infinite;
+  opacity: 0.7;
+}
+
+@keyframes progressGlow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.current-level,
+.next-level {
+  min-width: 18px;
+  text-align: center;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 0 8px currentColor;
+  transition: all 0.3s ease;
+}
+
+.timer.active .current-level,
+.timer.active .next-level {
+  text-shadow: 0 0 12px currentColor;
+}
+
 .timer[data-grade^="Novato"] .timer-grade {
   color: #4a90e2;
   text-shadow: 0 0 8px #4a90e2;
@@ -375,6 +472,17 @@ h1 {
   z-index: 2;
 }
 
+.progress-fill {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: var(--timer-color);
+  opacity: 0.2;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+  z-index: 0;
+}
+
 .wave-ring {
   position: absolute;
   top: 50%;
@@ -395,28 +503,6 @@ h1 {
   0% { transform: translate(-50%, -50%) scale(0); opacity: 0.8; border-width: 8px; }
   50% { border-width: 4px; filter: brightness(1.5); }
   100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; border-width: 1px; filter: brightness(1.2); }
-}
-
-.progress-fill {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: var(--timer-color);
-  opacity: 0.2;
-  border-radius: 50%;
-  transition: background-color 0.3s;
-  z-index: 0;
-}
-
-.progress-bar {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: var(--timer-color);
-  border-radius: 50%;
-  transform: scale(0);
-  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.4, 1.2);
-  z-index: 0;
 }
 
 .add-counter {
@@ -610,29 +696,16 @@ h1 {
   filter: brightness(0) invert(1);
 }
 
-.controls button {
-  padding: 8px 16px;
-  background: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: 'Comfortaa', cursive;
-  white-space: nowrap;
-}
-
-.controls button:hover {
-  background: #357abd;
-  transform: translateY(-2px);
-}
-
 .sort-name::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4'/%3E%3C/svg%3E");
 }
 
 .sort-time::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+}
+
+.achievements-btn::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v13m0-13V3m0 5l-4-4m4 4l4-4m0 18l-4-4m4 4l4-4'/%3E%3C/svg%3E");
 }
 
 .save-btn::before {
@@ -681,11 +754,6 @@ h1 {
   transform: translateY(-2px);
 }
 
-@keyframes tickerPulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1.4); }
-  50% { transform: translate(-50%, -50%) scale(1.8); }
-}
-
 @keyframes arcCreation {
   from { transform: rotate(var(--start-angle)) scale(0.5); opacity: 0; }
   to { transform: rotate(var(--start-angle)) scale(1); opacity: 1; }
@@ -722,6 +790,20 @@ h1 {
   border-left: 5px solid var(--timer-color);
 }
 
+.achievement-toast.remove {
+  animation: fadeOut 0.5s ease forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
 .achievement-icon {
   font-size: 24px;
   color: var(--timer-color);
@@ -732,9 +814,95 @@ h1 {
   line-height: 1.4;
 }
 
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+.achievement-name {
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.achievement-description {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Panel de logros */
+.achievements-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(42, 42, 42, 0.95);
+  width: 90%;
+  max-width: 500px;
+  border-radius: 15px;
+  padding: 20px;
+  z-index: 2000;
+  display: none;
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--timer-color);
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+.achievements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.achievements-list {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.achievement-timer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin: 15px 0 5px;
+  background: rgba(74, 144, 226, 0.2);
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.achievement-timer-name {
+  color: var(--timer-color);
+}
+
+.achievement-timer-time {
+  font-family: 'Comfortaa', monospace;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin: 5px 0;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+}
+
+.achievement-item .achievement-icon {
+  font-size: 24px;
+  margin-right: 15px;
+}
+
+.achievement-empty {
+  text-align: center;
+  padding: 10px;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
 }
 
 @media (max-width: 768px) {

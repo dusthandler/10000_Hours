@@ -10,10 +10,14 @@ class Timer {
         this.timerElement.appendChild(this.gradeDisplay);
         
         this.progressFill = this.element.querySelector('.progress-fill');
-        this.progressBar = this.element.querySelector('.progress-bar');
         this.progressContainer = this.element.querySelector('.progress-container');
         this.groupCircles = this.element.querySelector('.group-circles');
         this.contextMenu = this.element.querySelector('.context-menu');
+
+        // Nuevas referencias para la barra de progreso
+        this.currentLevelElement = this.element.querySelector('.current-level');
+        this.nextLevelElement = this.element.querySelector('.next-level');
+        this.levelProgressFill = this.element.querySelector('.level-progress .progress-fill');
 
         this.milliseconds = 0;
         this.isActive = false;
@@ -42,10 +46,36 @@ class Timer {
         };
 
         this.achievements = {
-            '24h': { unlocked: false, icon: '⏳' },
-            '100h': { unlocked: false, icon: '🔥' },
-            '1000h': { unlocked: false, icon: '🚀' },
-            'Maestro': { unlocked: false, icon: '🏆' }
+            '1h': { 
+                unlocked: false, 
+                icon: '👣', 
+                name: 'Primeros Pasos',
+                description: 'Completa 1 hora de práctica' 
+            },
+            '24h': { 
+                unlocked: false, 
+                icon: '🌅', 
+                name: 'Maratón Diario',
+                description: '24 horas acumuladas' 
+            },
+            '100h': { 
+                unlocked: false, 
+                icon: '🚀', 
+                name: 'Cohete de Habilidad',
+                description: '100 horas de dedicación' 
+            },
+            '500h': {
+                unlocked: false,
+                icon: '🦸',
+                name: 'Super Aprendiz',
+                description: '500 horas de maestría'
+            },
+            '1000h': { 
+                unlocked: false, 
+                icon: '🎖️', 
+                name: 'Maestro Legendario',
+                description: '1000 horas de excelencia' 
+            }
         };
 
         this.setupEvents();
@@ -255,12 +285,20 @@ class Timer {
             this.startTime = Date.now() - this.milliseconds;
             this.start();
             this.startWave();
+            
+            if(this.activeDot) {
+                this.activeDot.classList.add('active-current');
+            }
         } else {
             this.groupCircles.style.transform = 'scale(0.8) rotate(-360deg)';
             this.timerElement.style.setProperty('--border-gap', '5px');
             this.timerElement.style.setProperty('--border-style', 'dashed');
             this.stop();
             this.stopWave();
+            
+            if(this.activeDot) {
+                this.activeDot.classList.remove('active-current');
+            }
         }
         
         if(this.isMaster()) {
@@ -394,7 +432,9 @@ class Timer {
         if(currentLevelInDecade > 0 && currentLevel % 10 !== 0) {
             const currentIndex = currentLevelInDecade - 1;
             this.activeDot = this.groupCircles.children[currentIndex];
-            this.activeDot.classList.add('active-current');
+            if(this.isActive) {
+                this.activeDot.classList.add('active-current');
+            }
         }
 
         // Crear arcos entre puntos completados
@@ -442,7 +482,11 @@ class Timer {
 
     getCurrentLevel() {
         const hours = this.milliseconds / 3600000;
-        return Math.min(Math.floor(Math.sqrt(hours)), 1000);
+        // Primeros niveles más rápidos (hasta nivel 20)
+        if (hours < 20) {
+            return Math.floor(hours * 1.5); // 1.5x más rápido
+        }
+        return Math.min(Math.floor(Math.sqrt(hours) * 4), 1000);
     }
 
     isMaster() {
@@ -452,8 +496,16 @@ class Timer {
     updateProgress() {
         const currentLevel = this.getCurrentLevel();
         const levelProgress = currentLevel < 100 ? 
-            (Math.sqrt(this.milliseconds / 3600000) - currentLevel) : 1;
+            (Math.sqrt(this.milliseconds / 3600000) * 4) - currentLevel : 1;
 
+        // Actualizar elementos de nivel
+        this.currentLevelElement.textContent = currentLevel;
+        this.nextLevelElement.textContent = currentLevel + 1;
+        
+        // Actualizar barra de progreso
+        this.levelProgressFill.style.width = `${levelProgress * 100}%`;
+        this.levelProgressFill.style.backgroundColor = this.currentColor;
+        
         if(currentLevel > this.previousLevel) {
             this.animateLevelTransition(currentLevel);
             this.previousLevel = currentLevel;
@@ -465,12 +517,11 @@ class Timer {
         this.timerElement.dataset.grade = levelData.title;
         this.timerElement.style.setProperty('--timer-color', this.currentColor);
         this.progressFill.style.backgroundColor = this.currentColor;
-        this.progressBar.style.backgroundColor = this.currentColor;
         
-        const scaleFactor = 1 + (currentLevel * 0.015);
+        // Reducir el crecimiento máximo (1% por nivel, máximo 50%)
+        const scaleFactor = 1 + (Math.min(currentLevel, 50) * 0.01);
         this.timerElement.style.transform = `scale(${scaleFactor})`;
         
-        this.progressBar.style.transform = `scale(${levelProgress})`;
         this.gradeDisplay.textContent = levelData.title;
         this.updateGroupCircles(currentLevel);
         
@@ -500,18 +551,19 @@ class Timer {
 
     checkAchievements() {
         const hours = this.milliseconds / 3600000;
-        if(hours >= 24 && !this.achievements['24h'].unlocked) {
-            this.showAchievement('24h');
-        }
-        if(hours >= 100 && !this.achievements['100h'].unlocked) {
-            this.showAchievement('100h');
-        }
-        if(hours >= 1000 && !this.achievements['1000h'].unlocked) {
-            this.showAchievement('1000h');
-        }
-        if(this.isMaster() && !this.achievements['Maestro'].unlocked) {
-            this.showAchievement('Maestro');
-        }
+        const achievementsToCheck = [
+            { threshold: 1, key: '1h' },
+            { threshold: 24, key: '24h' },
+            { threshold: 100, key: '100h' },
+            { threshold: 500, key: '500h' },
+            { threshold: 1000, key: '1000h' }
+        ];
+
+        achievementsToCheck.forEach(({ threshold, key }) => {
+            if (hours >= threshold && !this.achievements[key].unlocked) {
+                this.showAchievement(key);
+            }
+        });
     }
 
     showAchievement(achievement) {
@@ -520,11 +572,18 @@ class Timer {
         toast.className = 'achievement-toast';
         toast.innerHTML = `
             <div class="achievement-icon">${this.achievements[achievement].icon}</div>
-            <div class="achievement-text">¡Logro desbloqueado!<br>${achievement}</div>
+            <div class="achievement-text">
+                <div class="achievement-name">${this.achievements[achievement].name}</div>
+                <div class="achievement-description">${this.achievements[achievement].description}</div>
+            </div>
         `;
         toast.style.setProperty('--timer-color', this.currentColor);
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        
+        setTimeout(() => {
+            toast.classList.add('remove');
+            setTimeout(() => toast.remove(), 500);
+        }, 2500);
     }
 
     adjustTextSize() {
@@ -594,7 +653,6 @@ class Timer {
             this.currentColor = e.target.value;
             this.timerElement.style.setProperty('--timer-color', this.currentColor);
             this.progressFill.style.backgroundColor = this.currentColor;
-            this.progressBar.style.backgroundColor = this.currentColor;
             this.updateGroupCircles(this.getCurrentLevel());
         };
         
@@ -628,6 +686,8 @@ class Timer {
 
 let currentColorTimer = null;
 let positions = {};
+let achievementsPanelOpen = false;
+let achievementsCloseHandler = null;
 
 function applyColor() {
     if(currentColorTimer) {
@@ -669,6 +729,82 @@ function sortByTime() {
         timer.style.top = `${y}px`;
         positions[timer.dataset.id] = {x, y};
     });
+}
+
+function toggleAchievements() {
+  const panel = document.querySelector('.achievements-panel');
+  
+  if (panel.style.display === 'block') {
+    closeAchievements();
+  } else {
+    openAchievements();
+  }
+}
+
+function openAchievements() {
+  const panel = document.querySelector('.achievements-panel');
+  panel.style.display = 'block';
+  achievementsPanelOpen = true;
+  
+  const list = panel.querySelector('.achievements-list');
+  list.innerHTML = '';
+  
+  document.querySelectorAll('.timer-wrapper').forEach(timer => {
+    const timerInstance = timer.timer;
+    const timerHeader = document.createElement('div');
+    timerHeader.className = 'achievement-timer-header';
+    timerHeader.innerHTML = `
+      <span class="achievement-timer-name">${timerInstance.nameDisplay.textContent}</span>
+      <span class="achievement-timer-time">${timerInstance.timeDisplay.textContent}</span>
+    `;
+    list.appendChild(timerHeader);
+    
+    const achievements = timerInstance.achievements;
+    let hasAchievements = false;
+    
+    Object.entries(achievements).forEach(([key, data]) => {
+      if (data.unlocked) {
+        hasAchievements = true;
+        const item = document.createElement('div');
+        item.className = 'achievement-item';
+        item.innerHTML = `
+          <div class="achievement-icon">${data.icon}</div>
+          <div>
+            <div class="achievement-name">${data.name}</div>
+            <div class="achievement-description">${data.description}</div>
+          </div>
+        `;
+        list.appendChild(item);
+      }
+    });
+    
+    if (!hasAchievements) {
+      const emptyMsg = document.createElement('div');
+      emptyMsg.className = 'achievement-empty';
+      emptyMsg.textContent = 'Aún no hay logros desbloqueados';
+      list.appendChild(emptyMsg);
+    }
+  });
+  
+  // Configurar el evento para cerrar al hacer clic fuera
+  achievementsCloseHandler = (e) => {
+    if (!e.target.closest('.achievements-panel') && !e.target.classList.contains('achievements-btn')) {
+      closeAchievements();
+    }
+  };
+  
+  document.addEventListener('click', achievementsCloseHandler);
+}
+
+function closeAchievements() {
+  const panel = document.querySelector('.achievements-panel');
+  panel.style.display = 'none';
+  achievementsPanelOpen = false;
+  
+  if (achievementsCloseHandler) {
+    document.removeEventListener('click', achievementsCloseHandler);
+    achievementsCloseHandler = null;
+  }
 }
 
 document.querySelector('.add-counter').addEventListener('click', function(e)  {
@@ -743,7 +879,6 @@ function Load(event) {
             timer.updateProgress();
             timer.timerElement.style.setProperty('--timer-color', timer.currentColor);
             timer.progressFill.style.backgroundColor = timer.currentColor;
-            timer.progressBar.style.backgroundColor = timer.currentColor;
             timer.adjustTextSize();
 
             const container = document.querySelector('.counters-container');

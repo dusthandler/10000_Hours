@@ -22,10 +22,20 @@
                 <div class="progress-container">
                     <div class="group-circles"></div>
                     <div class="progress-fill"></div>
-                    <div class="progress-bar"></div>
                     <div class="timer-content">
                         <div class="timer-name">Nuevo</div>
                         <div class="timer-time">0.0s</div>
+                        <div class="level-progress">
+                            <div class="level-info">
+                                <span class="current-level">0</span>
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"></div>
+                                    </div>
+                                </div>
+                                <span class="next-level">1</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -48,12 +58,21 @@
     <div class="controls">
       <button class="control-btn sort-name" onclick="sortByName()">Nombre</button>
       <button class="control-btn sort-time" onclick="sortByTime()">Tiempo</button>
+      <button class="control-btn achievements-btn" onclick="toggleAchievements()">Logros</button>
     </div>
 
     <div class="saveload">
       <button class="control-btn save-btn" onclick="Save()">Guardar</button>
       <button class="control-btn load-btn" onclick="document.getElementById('upload-input').click()">Cargar</button>
       <input id="upload-input" type="file" accept=".json" style="display: none;" onchange="Load(event)" />
+    </div>
+
+    <div class="achievements-panel">
+      <div class="achievements-header">
+        <h3>Logros Desbloqueados</h3>
+        <button class="close-btn" onclick="toggleAchievements()">&times;</button>
+      </div>
+      <div class="achievements-list"></div>
     </div>
 
     <script src="app.js"></script>
