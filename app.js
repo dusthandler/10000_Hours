@@ -31,12 +31,21 @@ class Timer {
         this.element.dataset.id = Date.now() + Math.random().toString(36).substr(2, 9);
 
         this.titleColors = {
-            'Novato': '#4a90e2',
-            'Principiante': '#2ecc71',
-            'Competente': '#f1c40f',
-            'Experto': '#e67e22',
-            'Profesional': '#e74c3c',
-            'Maestro': '#ffd700'
+            'Novato I': '#4a90e2', 'Novato II': '#3a80d2', 'Novato III': '#2a70c2',
+            'Aprendiz I': '#2ecc71', 'Aprendiz II': '#25b362', 'Aprendiz III': '#1c9953',
+            'Principiante I': '#f1c40f', 'Principiante II': '#e6b80e', 'Principiante III': '#daa90d',
+            'Competente I': '#e67e22', 'Competente II': '#d66f18', 'Competente III': '#c6600e',
+            'Experto I': '#e74c3c', 'Experto II': '#d43d2d', 'Experto III': '#c12e1e',
+            'Profesional I': '#9b59b6', 'Profesional II': '#8a4aa5', 'Profesional III': '#793b94',
+            'Maestro I': '#ffd700', 'Maestro II': '#e6c200', 'Maestro III': '#ccad00',
+            'Gran Maestro': '#00ff9d', 'Leyenda': '#ff00ff'
+        };
+
+        this.achievements = {
+            '24h': { unlocked: false, icon: '⏳' },
+            '100h': { unlocked: false, icon: '🔥' },
+            '1000h': { unlocked: false, icon: '🚀' },
+            'Maestro': { unlocked: false, icon: '🏆' }
         };
 
         this.setupEvents();
@@ -261,7 +270,10 @@ class Timer {
 
     start() {
         this.stop();
-        this.interval = setInterval(() => this.updateTime(), 100);
+        this.interval = setInterval(() => {
+            this.updateTime();
+            this.checkAchievements();
+        }, 100);
     }
 
     stop() {
@@ -325,12 +337,15 @@ class Timer {
 
     getTitle(level) {
         const titles = [
-            { min: 0, max: 10, title: 'Novato' },
-            { min: 11, max: 30, title: 'Principiante' },
-            { min: 31, max: 60, title: 'Competente' },
-            { min: 61, max: 90, title: 'Experto' },
-            { min: 91, max: 99, title: 'Profesional' },
-            { min: 100, max: 100, title: 'Maestro' }
+            { min: 0, max: 5, title: 'Novato I' }, { min: 6, max: 10, title: 'Novato II' },
+            { min: 11, max: 15, title: 'Aprendiz I' }, { min: 16, max: 20, title: 'Aprendiz II' },
+            { min: 21, max: 25, title: 'Principiante I' }, { min: 26, max: 30, title: 'Principiante II' },
+            { min: 31, max: 35, title: 'Competente I' }, { min: 36, max: 40, title: 'Competente II' },
+            { min: 41, max: 45, title: 'Experto I' }, { min: 46, max: 50, title: 'Experto II' },
+            { min: 51, max: 55, title: 'Profesional I' }, { min: 56, max: 60, title: 'Profesional II' },
+            { min: 61, max: 70, title: 'Maestro I' }, { min: 71, max: 85, title: 'Maestro II' },
+            { min: 86, max: 99, title: 'Maestro III' }, { min: 100, max: 1000, title: 'Gran Maestro' },
+            { min: 1001, max: Infinity, title: 'Leyenda' }
         ];
         return titles.find(t => level >= t.min && level <= t.max) || { title: '', color: '' };
     }
@@ -393,6 +408,18 @@ class Timer {
                 background: radial-gradient(circle, ${this.currentColor} 0%, transparent 70%);
             `;
             this.groupCircles.appendChild(masterGlow);
+
+            // Partículas orbitales para maestros
+            const particles = 15;
+            for(let i = 0; i < particles; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'master-particle';
+                particle.style.cssText = `
+                    background: ${this.currentColor};
+                    transform: rotate(${i * (360/particles)}deg) translate(120%);
+                `;
+                this.groupCircles.appendChild(particle);
+            }
         }
     }
 
@@ -415,7 +442,7 @@ class Timer {
 
     getCurrentLevel() {
         const hours = this.milliseconds / 3600000;
-        return Math.min(Math.floor(Math.sqrt(hours)), 100);
+        return Math.min(Math.floor(Math.sqrt(hours)), 1000);
     }
 
     isMaster() {
@@ -469,6 +496,35 @@ class Timer {
         if(this.activeDot) {
             this.activeDot.classList.remove('active-current');
         }
+    }
+
+    checkAchievements() {
+        const hours = this.milliseconds / 3600000;
+        if(hours >= 24 && !this.achievements['24h'].unlocked) {
+            this.showAchievement('24h');
+        }
+        if(hours >= 100 && !this.achievements['100h'].unlocked) {
+            this.showAchievement('100h');
+        }
+        if(hours >= 1000 && !this.achievements['1000h'].unlocked) {
+            this.showAchievement('1000h');
+        }
+        if(this.isMaster() && !this.achievements['Maestro'].unlocked) {
+            this.showAchievement('Maestro');
+        }
+    }
+
+    showAchievement(achievement) {
+        this.achievements[achievement].unlocked = true;
+        const toast = document.createElement('div');
+        toast.className = 'achievement-toast';
+        toast.innerHTML = `
+            <div class="achievement-icon">${this.achievements[achievement].icon}</div>
+            <div class="achievement-text">¡Logro desbloqueado!<br>${achievement}</div>
+        `;
+        toast.style.setProperty('--timer-color', this.currentColor);
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     adjustTextSize() {
@@ -625,10 +681,9 @@ document.querySelector('.add-counter').addEventListener('click', function(e)  {
     const btn = e.currentTarget;
     btn.classList.add('clicked');
   
-  // Eliminamos la clase cuando termine la animación
-  setTimeout(() => {
-    btn.classList.remove('clicked');
-  }, 600);
+    setTimeout(() => {
+        btn.classList.remove('clicked');
+    }, 600);
 
     newTimer.element.style.left = `${startX}px`;
     newTimer.element.style.top = `${startY}px`;
@@ -657,6 +712,7 @@ function Save() {
             milliseconds: timerInstance.milliseconds,
             position: positions[timer.dataset.id],
             color: timerInstance.currentColor,
+            achievements: timerInstance.achievements
         };
     });
 
@@ -679,6 +735,7 @@ function Load(event) {
             timer.nameDisplay.textContent = counter.name;
             timer.milliseconds = counter.milliseconds;
             timer.currentColor = counter.color;
+            timer.achievements = counter.achievements || {};
             timer.element.style.left = `${counter.position.x}px`;
             timer.element.style.top = `${counter.position.y}px`;
 
